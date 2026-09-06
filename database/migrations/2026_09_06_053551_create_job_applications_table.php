@@ -13,10 +13,16 @@ return new class extends Migration
             $table->timestamps();
             $table->string('company_name', 255);
             $table->string('position', 255);
-            $table->float('salary', 10, 2);
-            $table->string('currency', 10)->default('PHP'); // USD, PHP, EUR, GBP, AUD, etc.
-            $table->string('pay_rate_type', 50)->default('Monthly'); // Monthly or Hourly
-            $table->float('hours_per_week', 5, 2)->nullable()->default(40); // For conversion calculations
+            
+            // Salary fields for Remote (exact) vs Onsite/Hybrid (range)
+            $table->float('salary', 10, 2)->nullable();
+            $table->float('salary_min', 10, 2)->nullable();
+            $table->float('salary_max', 10, 2)->nullable();
+            
+            $table->string('currency', 10)->default('PHP');
+            $table->string('pay_rate_type', 50)->default('Monthly');
+            $table->float('hours_per_week', 5, 2)->nullable()->default(40);
+            
             $table->string('job_type', 255);
             $table->text('description'); 
             $table->string('pros', 255)->nullable();

@@ -4,14 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Log Application - Job Tracker</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Alpine.js CDN for dynamic form behavior -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen font-sans pb-12">
 
-    <!-- Top Navigation Header -->
+    <!-- Top Navigation -->
     <nav class="bg-gray-800/80 backdrop-blur-md border-b border-gray-700/50 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
@@ -30,14 +28,12 @@
         </div>
     </nav>
 
-    <!-- Main Content Container with Alpine Reactive State -->
-    <main class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8" 
-          x-data="{ JobType: '{{ old('job_type', 'Remote') }}' }">
+    <!-- Main Container -->
+    <main class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data="{ JobType: '{{ old('job_type', 'Remote') }}' }">
 
-        <!-- Error Summary Box -->
         @if($errors->any())
             <div class="mb-6 p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400">
-                <div class="font-semibold text-sm mb-2">Please fix the following validation errors:</div>
+                <div class="font-semibold text-sm mb-2">Please fix validation errors:</div>
                 <ul class="list-disc list-inside text-xs space-y-1">
                     @foreach($errors->all() as $Error)
                         <li>{{ $Error }}</li>
@@ -46,33 +42,32 @@
             </div>
         @endif
 
-        <!-- Glassmorphism Form Card -->
         <div class="bg-gray-800/40 backdrop-blur-sm border border-gray-700/60 rounded-xl p-6 sm:p-8 shadow-xl">
             <form action="{{ route('job-applications.store') }}" method="POST" class="space-y-6">
                 @csrf
 
-                <!-- Company Name & Position -->
+                <!-- Company & Position -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Company Name *</label>
                         <input type="text" name="company_name" value="{{ old('company_name') }}" required
-                               class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:border-[#92BA56] focus:ring-1 focus:ring-[#92BA56] transition-colors"
+                               class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56]"
                                placeholder="e.g. Stripe">
                     </div>
                     <div>
                         <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Position *</label>
                         <input type="text" name="position" value="{{ old('position') }}" required
-                               class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:border-[#92BA56] focus:ring-1 focus:ring-[#92BA56] transition-colors"
+                               class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56]"
                                placeholder="e.g. Frontend Developer">
                     </div>
                 </div>
 
-                <!-- Work Setup & City -->
+                <!-- Work Setup & Location -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Work Setup / Job Type *</label>
                         <select name="job_type" x-model="JobType" required
-                                class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:border-[#92BA56] focus:ring-1 focus:ring-[#92BA56] transition-colors">
+                                class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56]">
                             <option value="Remote">Remote / Online</option>
                             <option value="Hybrid">Hybrid</option>
                             <option value="Onsite">Onsite</option>
@@ -83,7 +78,7 @@
                     <div>
                         <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">City / Location *</label>
                         <input type="text" name="city" value="{{ old('city') }}" required
-                               class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:border-[#92BA56] focus:ring-1 focus:ring-[#92BA56] transition-colors"
+                               class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56]"
                                placeholder="e.g. Manila / Remote">
                     </div>
                 </div>
@@ -92,18 +87,16 @@
                 <div class="p-4 rounded-xl bg-gray-900/40 border border-gray-700/50 space-y-4">
                     <div class="flex items-center justify-between">
                         <h3 class="text-xs font-bold text-[#92BA56] uppercase tracking-wider">Compensation Log</h3>
-                        <span class="text-[11px] text-gray-400" x-text="JobType === 'Remote' ? 'Remote Rate Details Active' : 'Standard Salary Logging'"></span>
+                        <span class="text-[11px] text-gray-400" x-text="JobType === 'Remote' ? 'Exact Remote Rate Log' : 'Onsite / Hybrid Salary Range'"></span>
                     </div>
 
-                    <!-- Remote-Only Flexible Compensation Fields -->
+                    <!-- Remote Dynamic Compensation -->
                     <template x-if="JobType === 'Remote'">
                         <div class="space-y-4">
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                <!-- Currency Selector -->
                                 <div>
                                     <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Currency *</label>
-                                    <select name="currency" required
-                                            class="w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:border-[#92BA56] transition-colors">
+                                    <select name="currency" required class="w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56]">
                                         <option value="USD" {{ old('currency') === 'USD' ? 'selected' : '' }}>USD ($)</option>
                                         <option value="PHP" {{ old('currency') === 'PHP' ? 'selected' : '' }}>PHP (₱)</option>
                                         <option value="EUR" {{ old('currency') === 'EUR' ? 'selected' : '' }}>EUR (€)</option>
@@ -111,46 +104,49 @@
                                         <option value="AUD" {{ old('currency') === 'AUD' ? 'selected' : '' }}>AUD (A$)</option>
                                     </select>
                                 </div>
-
-                                <!-- Amount Input -->
                                 <div>
                                     <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Amount *</label>
                                     <input type="number" step="0.01" name="salary" value="{{ old('salary') }}" required
-                                           class="w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:border-[#92BA56] transition-colors"
-                                           placeholder="e.g. 15 or 2500">
+                                           class="w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56]"
+                                           placeholder="e.g. 20 or 3000">
                                 </div>
-
-                                <!-- Pay Frequency (Hourly vs Monthly) -->
                                 <div>
                                     <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Pay Frequency *</label>
-                                    <select name="pay_rate_type" required
-                                            class="w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:border-[#92BA56] transition-colors">
+                                    <select name="pay_rate_type" required class="w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56]">
                                         <option value="Hourly" {{ old('pay_rate_type') === 'Hourly' ? 'selected' : '' }}>Hourly Rate</option>
                                         <option value="Monthly" {{ old('pay_rate_type') === 'Monthly' ? 'selected' : '' }}>Monthly Rate</option>
                                     </select>
                                 </div>
                             </div>
-
-                            <!-- Weekly Hours for Rate Conversions -->
                             <div>
                                 <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Hours Per Week *</label>
                                 <input type="number" step="0.5" name="hours_per_week" value="{{ old('hours_per_week', 40) }}" required
-                                       class="w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:border-[#92BA56] transition-colors"
+                                       class="w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56]"
                                        placeholder="Standard: 40">
                             </div>
+                            <input type="hidden" name="salary_min" value="">
+                            <input type="hidden" name="salary_max" value="">
                         </div>
                     </template>
 
-                    <!-- Standard/Non-Remote Salary Logging -->
+                    <!-- Onsite Range Salary Logging -->
                     <template x-if="JobType !== 'Remote'">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Monthly Salary (PHP ₱) *</label>
-                                <input type="number" step="0.01" name="salary" value="{{ old('salary') }}" required
-                                       class="w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:border-[#92BA56] transition-colors"
-                                       placeholder="e.g. 35000">
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Minimum Monthly Salary (PHP ₱) *</label>
+                                    <input type="number" step="0.01" name="salary_min" value="{{ old('salary_min') }}" required
+                                           class="w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56]"
+                                           placeholder="e.g. 25000">
+                                </div>
+                                <div>
+                                    <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Maximum Monthly Salary (PHP ₱) *</label>
+                                    <input type="number" step="0.01" name="salary_max" value="{{ old('salary_max') }}" required
+                                           class="w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56]"
+                                           placeholder="e.g. 35000">
+                                </div>
                             </div>
-                            <!-- Hidden default parameters for non-remote records -->
+                            <input type="hidden" name="salary" value="">
                             <input type="hidden" name="currency" value="PHP">
                             <input type="hidden" name="pay_rate_type" value="Monthly">
                             <input type="hidden" name="hours_per_week" value="40">
@@ -158,38 +154,31 @@
                     </template>
                 </div>
 
-                <!-- Application URL & Source -->
+                <!-- URL & Source -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Application URL *</label>
                         <input type="url" name="ApplicationURL" value="{{ old('ApplicationURL') }}" required
-                               class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:border-[#92BA56] focus:ring-1 focus:ring-[#92BA56] transition-colors"
+                               class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56]"
                                placeholder="https://company.com/careers/123">
                     </div>
                     <div>
                         <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Source *</label>
-                        <select name="source" required
-                                class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:border-[#92BA56] focus:ring-1 focus:ring-[#92BA56] transition-colors">
-                            <option value="Career Fair" {{ old('source') === 'Career Fair' ? 'selected' : '' }}>Career Fair</option>
+                        <select name="source" required class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56]">
                             <option value="LinkedIn" {{ old('source') === 'LinkedIn' ? 'selected' : '' }}>LinkedIn</option>
                             <option value="Indeed" {{ old('source') === 'Indeed' ? 'selected' : '' }}>Indeed</option>
                             <option value="JobStreet" {{ old('source') === 'JobStreet' ? 'selected' : '' }}>JobStreet</option>
                             <option value="OLJ" {{ old('source') === 'OLJ' ? 'selected' : '' }}>OnlineJobs.ph (OLJ)</option>
-                            <option value="BossJob" {{ old('source') === 'BossJob' ? 'selected' : '' }}>BossJob</option>
-                            <option value="Prosple" {{ old('source') === 'Prosple' ? 'selected' : '' }}>Prosple</option>\
-                            <option value="JobTarget" {{ old('source') === 'JobTarget' ? 'selected' : '' }}>JobTarget</option>
-                            <option value="Facebook" {{ old('source') === 'Facebook' ? 'selected' : '' }}>Facebook</option>
                             <option value="Company Website" {{ old('source') === 'Company Website' ? 'selected' : '' }}>Company Website</option>
                             <option value="Referral" {{ old('source') === 'Referral' ? 'selected' : '' }}>Referral</option>
                         </select>
                     </div>
                 </div>
 
-                <!-- Status Selection -->
+                <!-- Status -->
                 <div>
-                    <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Application Status *</label>
-                    <select name="status" required
-                            class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:border-[#92BA56] focus:ring-1 focus:ring-[#92BA56] transition-colors">
+                    <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Status *</label>
+                    <select name="status" required class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56]">
                         <option value="Applied" {{ old('status') === 'Applied' ? 'selected' : '' }}>Applied</option>
                         <option value="Under Review" {{ old('status') === 'Under Review' ? 'selected' : '' }}>Under Review</option>
                         <option value="Interviewing" {{ old('status') === 'Interviewing' ? 'selected' : '' }}>Interviewing</option>
@@ -203,37 +192,25 @@
                 <!-- Description -->
                 <div>
                     <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Job Description *</label>
-                    <textarea name="description" rows="4" required
-                              class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:border-[#92BA56] focus:ring-1 focus:ring-[#92BA56] transition-colors"
-                              placeholder="Key responsibilities, stack, or benefits...">{{ old('description') }}</textarea>
+                    <textarea name="description" rows="4" required class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56]">{{ old('description') }}</textarea>
                 </div>
 
                 <!-- Pros & Cons -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Pros (Optional)</label>
-                        <input type="text" name="pros" value="{{ old('pros') }}"
-                               class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:border-[#92BA56] focus:ring-1 focus:ring-[#92BA56] transition-colors"
-                               placeholder="e.g. Flexible shift, great stack">
+                        <input type="text" name="pros" value="{{ old('pros') }}" class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56]">
                     </div>
                     <div>
                         <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Cons (Optional)</label>
-                        <input type="text" name="cons" value="{{ old('cons') }}"
-                               class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:outline-none focus:border-[#92BA56] focus:ring-1 focus:ring-[#92BA56] transition-colors"
-                               placeholder="e.g. Graveyard shift">
+                        <input type="text" name="cons" value="{{ old('cons') }}" class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56]">
                     </div>
                 </div>
 
-                <!-- Form Action Controls -->
+                <!-- Actions -->
                 <div class="flex items-center justify-end gap-4 pt-4 border-t border-gray-700/60">
-                    <a href="{{ route('job-applications.applications') }}" 
-                       class="px-5 py-2.5 text-sm font-medium text-gray-400 hover:text-white transition-colors">
-                        Cancel
-                    </a>
-                    <button type="submit" 
-                            class="px-6 py-2.5 text-sm font-semibold text-gray-900 bg-[#92BA56] hover:bg-[#82a74a] rounded-lg transition-colors shadow-md shadow-[#92BA56]/20">
-                        Save Application
-                    </button>
+                    <a href="{{ route('job-applications.applications') }}" class="px-5 py-2.5 text-sm font-medium text-gray-400 hover:text-white">Cancel</a>
+                    <button type="submit" class="px-6 py-2.5 text-sm font-semibold text-gray-900 bg-[#92BA56] hover:bg-[#82a74a] rounded-lg">Save Application</button>
                 </div>
             </form>
         </div>
