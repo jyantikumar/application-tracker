@@ -60,14 +60,48 @@
             </div>
         @endif
 
-        <div class="flex items-center justify-between">
+        <!-- Page Header & Controls -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <h1 class="text-2xl font-bold text-white tracking-tight">All Job Applications</h1>
                 <p class="text-gray-400 text-sm mt-0.5">Manage and inspect compensation breakdowns & interview logs.</p>
             </div>
-            <span class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-gray-800 text-gray-300 border border-gray-700">
-                Total Records: {{ $JobApplications->count() }}
-            </span>
+            
+            <!-- Dynamic Search & Filters -->
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- Search Input -->
+                <div class="relative min-w-[240px]">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <input type="text" x-model="SearchQuery" placeholder="Search company, position, city..."
+                           class="w-full bg-gray-800/80 border border-gray-700 rounded-lg pl-9 pr-4 py-2 text-xs text-gray-100 placeholder-gray-400 focus:border-[#92BA56] focus:outline-none transition-colors">
+                </div>
+
+                <!-- Setup Filter -->
+                <select x-model="JobTypeFilter" class="bg-gray-800/80 border border-gray-700 rounded-lg px-3 py-2 text-xs text-gray-200 focus:border-[#92BA56] focus:outline-none">
+                    <option value="">All Work Setups</option>
+                    <option value="Remote">Remote</option>
+                    <option value="Hybrid">Hybrid</option>
+                    <option value="Onsite">Onsite</option>
+                </select>
+
+                <!-- Status Filter -->
+                <select x-model="StatusFilter" class="bg-gray-800/80 border border-gray-700 rounded-lg px-3 py-2 text-xs text-gray-200 focus:border-[#92BA56] focus:outline-none">
+                    <option value="">All Statuses</option>
+                    <option value="Applied">Applied</option>
+                    <option value="Under Review">Under Review</option>
+                    <option value="Currently Interviewing">Currently Interviewing</option>
+                    <option value="Waiting response">Waiting Response</option>
+                    <option value="Rejected">Rejected</option>
+                </select>
+
+                <span class="text-xs font-semibold px-3 py-2 rounded-lg bg-gray-800 text-gray-300 border border-gray-700">
+                    Total: <span x-text="FilteredApplications.length"></span>
+                </span>
+            </div>
         </div>
 
         <!-- Table View -->
@@ -79,76 +113,82 @@
                             <th class="px-6 py-4">Company & Position</th>
                             <th class="px-6 py-4">Work Setup</th>
                             <th class="px-6 py-4">Compensation</th>
+                            <th class="px-6 py-4">Date Applied</th>
                             <th class="px-6 py-4">Interview Status</th>
                             <th class="px-6 py-4">Status</th>
                             <th class="px-6 py-4 text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-700/40">
-                        @forelse($JobApplications as $Application)
+                        <template x-for="Application in FilteredApplications" :key="Application.id">
                             <tr class="hover:bg-gray-800/50 transition-colors">
                                 
                                 <!-- Company & Position -->
                                 <td class="px-6 py-4">
-                                    <div class="font-semibold text-white text-base">{{ $Application->company_name }}</div>
-                                    <div class="text-gray-400 text-xs">{{ $Application->position }}</div>
+                                    <div class="font-semibold text-white text-base" x-text="Application.company_name"></div>
+                                    <div class="text-gray-400 text-xs" x-text="Application.position"></div>
                                 </td>
 
                                 <!-- Work Setup & City -->
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-gray-200">{{ $Application->job_type }}</div>
-                                    <div class="text-gray-400 text-xs">{{ $Application->city }}</div>
+                                    <div class="text-gray-200" x-text="Application.job_type"></div>
+                                    <div class="text-gray-400 text-xs" x-text="Application.city || 'N/A'"></div>
                                 </td>
 
                                 <!-- Formatted Salary Display -->
                                 <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-200">
-                                    <span class="text-[#92BA56] font-bold">{{ $Application->formatted_salary }}</span>
-                                    <span class="text-gray-400 text-xs">/ {{ strtolower($Application->pay_rate_type) }}</span>
+                                    <span class="text-[#92BA56] font-bold" x-text="Application.formatted_salary"></span>
+                                    <span class="text-gray-400 text-xs">/ <span x-text="Application.pay_rate_type.toLowerCase()"></span></span>
+                                </td>
+
+                                <!-- Date Applied -->
+                                <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-300" 
+                                    x-text="Application.created_at ? new Date(Application.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'">
                                 </td>
 
                                 <!-- Interview Status Indicator Badge -->
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    @if($Application->has_been_interviewed)
+                                    <template x-if="Application.has_been_interviewed">
                                         <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                            Interviewed ({{ $Application->Interviews->where('status', 'Completed')->count() }})
+                                            Interviewed
                                         </span>
-                                    @elseif($Application->Interviews->where('status', 'Scheduled')->count() > 0)
+                                    </template>
+                                    <template x-if="!Application.has_been_interviewed && Application.interviews && Application.interviews.filter(i => i.status === 'Scheduled').length > 0">
                                         <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                                            Scheduled ({{ $Application->Interviews->where('status', 'Scheduled')->count() }})
+                                            Scheduled
                                         </span>
-                                    @else
+                                    </template>
+                                    <template x-if="!Application.has_been_interviewed && (!Application.interviews || Application.interviews.filter(i => i.status === 'Scheduled').length === 0)">
                                         <span class="text-xs text-gray-500">No interviews logged</span>
-                                    @endif
+                                    </template>
                                 </td>
 
                                 <!-- Status -->
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2.5 py-1 rounded-full text-xs font-medium border bg-gray-700/50 text-gray-300 border-gray-600/30">
-                                        {{ $Application->status }}
-                                    </span>
+                                    <span class="px-2.5 py-1 rounded-full text-xs font-medium border bg-gray-700/50 text-gray-300 border-gray-600/30" x-text="Application.status"></span>
                                 </td>
 
                                 <!-- Actions -->
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                                     <div class="flex items-center justify-end gap-2">
                                         <!-- Open Details Modal -->
-                                        <button @click="openDetailsModal({{ json_encode($Application) }}, {{ json_encode($Application->calculated_earnings) }})"
+                                        <button @click="openDetailsModal(Application, Application.calculated_earnings)"
                                                 class="px-3 py-1.5 text-xs font-medium text-[#92BA56] bg-[#92BA56]/10 hover:bg-[#92BA56]/20 rounded-md border border-[#92BA56]/30 transition-colors">
                                             View
                                         </button>
 
                                         <!-- Open Interview Modal -->
-                                        <button @click="openInterviewModal({{ json_encode($Application) }}, {{ json_encode($Application->Interviews) }})"
+                                        <button @click="openInterviewModal(Application, Application.interviews || [])"
                                                 class="px-3 py-1.5 text-xs font-medium text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 rounded-md border border-amber-500/20 transition-colors">
-                                            Interviews ({{ $Application->Interviews->count() }})
+                                            Interviews (<span x-text="Application.interviews ? Application.interviews.length : 0"></span>)
                                         </button>
 
-                                        <a href="{{ route('job-applications.edit', $Application->id) }}" class="px-3 py-1.5 text-xs font-medium text-gray-300 bg-gray-700/50 hover:bg-gray-700 hover:text-white rounded-md border border-gray-600/40 transition-colors">
+                                        <a :href="'/job-applications/' + Application.id + '/edit'" class="px-3 py-1.5 text-xs font-medium text-gray-300 bg-gray-700/50 hover:bg-gray-700 hover:text-white rounded-md border border-gray-600/40 transition-colors">
                                             Edit
                                         </a>
 
-                                        <form action="{{ route('job-applications.destroy', $Application->id) }}" method="POST" class="inline">
+                                        <form :action="'/job-applications/' + Application.id" method="POST" class="inline">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" onclick="return confirm('Delete record?')" class="px-3 py-1.5 text-xs font-medium text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 rounded-md border border-rose-500/20 transition-colors">
@@ -158,11 +198,15 @@
                                     </div>
                                 </td>
                             </tr>
-                        @empty
+                        </template>
+
+                        <template x-if="FilteredApplications.length === 0">
                             <tr>
-                                <td colspan="6" class="px-6 py-12 text-center text-gray-400">No applications recorded yet.</td>
+                                <td colspan="7" class="px-6 py-12 text-center text-gray-400">
+                                    No job applications match your search or filter parameters.
+                                </td>
                             </tr>
-                        @endforelse
+                        </template>
                     </tbody>
                 </table>
             </div>
@@ -194,19 +238,19 @@
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                             <div class="bg-gray-900/60 p-3 rounded-xl border border-gray-700/50">
                                 <span class="text-[11px] text-gray-400 block font-medium">Hourly Rate</span>
-                                <span class="text-base font-bold text-white" x-text="SelectedApp.currency + ' ' + Earnings.Hourly"></span>
+                                <span class="text-base font-bold text-white" x-text="SelectedApp.currency + ' ' + (Earnings.Hourly || '0.00')"></span>
                             </div>
                             <div class="bg-gray-900/60 p-3 rounded-xl border border-gray-700/50">
                                 <span class="text-[11px] text-gray-400 block font-medium">Daily Rate</span>
-                                <span class="text-base font-bold text-white" x-text="SelectedApp.currency + ' ' + Earnings.Daily"></span>
+                                <span class="text-base font-bold text-white" x-text="SelectedApp.currency + ' ' + (Earnings.Daily || '0.00')"></span>
                             </div>
                             <div class="bg-gray-900/60 p-3 rounded-xl border border-gray-700/50">
                                 <span class="text-[11px] text-gray-400 block font-medium">Weekly Rate</span>
-                                <span class="text-base font-bold text-white" x-text="SelectedApp.currency + ' ' + Earnings.Weekly"></span>
+                                <span class="text-base font-bold text-white" x-text="SelectedApp.currency + ' ' + (Earnings.Weekly || '0.00')"></span>
                             </div>
                             <div class="bg-gray-900/60 p-3 rounded-xl border border-gray-700/50">
                                 <span class="text-[11px] font-semibold text-[#92BA56] block">Monthly Rate</span>
-                                <span class="text-base font-bold text-[#92BA56]" x-text="SelectedApp.currency + ' ' + Earnings.Monthly"></span>
+                                <span class="text-base font-bold text-[#92BA56]" x-text="SelectedApp.currency + ' ' + (Earnings.Monthly || '0.00')"></span>
                             </div>
                         </div>
                     </div>
@@ -378,20 +422,42 @@
     <script>
         function PageData() {
             return {
+                AllApplications: @json($JobApplications),
+                SearchQuery: '',
+                JobTypeFilter: '',
+                StatusFilter: '',
                 IsDetailsModalOpen: false,
                 IsInterviewModalOpen: false,
                 IsImportModalOpen: false,
                 SelectedApp: {},
                 Earnings: {},
                 InterviewsList: [],
+
+                get FilteredApplications() {
+                    return this.AllApplications.filter(App => {
+                        const Query = this.SearchQuery.toLowerCase().trim();
+                        
+                        const MatchesSearch = !Query || 
+                            (App.company_name && App.company_name.toLowerCase().includes(Query)) ||
+                            (App.position && App.position.toLowerCase().includes(Query)) ||
+                            (App.city && App.city.toLowerCase().includes(Query)) ||
+                            (App.source && App.source.toLowerCase().includes(Query));
+
+                        const MatchesJobType = !this.JobTypeFilter || App.job_type === this.JobTypeFilter;
+                        const MatchesStatus = !this.StatusFilter || App.status === this.StatusFilter;
+
+                        return MatchesSearch && MatchesJobType && MatchesStatus;
+                    });
+                },
+
                 openDetailsModal(App, Calculated) {
                     this.SelectedApp = App;
-                    this.Earnings = Calculated;
+                    this.Earnings = Calculated || {};
                     this.IsDetailsModalOpen = true;
                 },
                 openInterviewModal(App, Interviews) {
                     this.SelectedApp = App;
-                    this.InterviewsList = Interviews;
+                    this.InterviewsList = Interviews || [];
                     this.IsInterviewModalOpen = true;
                 }
             }

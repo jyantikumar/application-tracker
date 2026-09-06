@@ -120,6 +120,7 @@
                             <th class="px-6 py-4">Company & Position</th>
                             <th class="px-6 py-4">Setup & City</th>
                             <th class="px-6 py-4">Compensation</th>
+                            <th class="px-6 py-4">Date Applied</th>
                             <th class="px-6 py-4">Status</th>
                         </tr>
                     </thead>
@@ -135,6 +136,9 @@
                                     <div class="text-gray-400 text-xs">{{ $Application->city }}</div>
                                 </td>
                                 <td class="px-6 py-4 font-medium text-[#92BA56]">{{ $Application->formatted_salary }}</td>
+                                <td class="px-6 py-4 text-xs text-gray-300">
+                {{ $Application->created_at ? $Application->created_at->format('M d, Y') : 'N/A' }}
+            </td>
                                 <td class="px-6 py-4">
                                     <span class="px-2.5 py-1 rounded-full text-xs font-medium border bg-gray-700/50 text-gray-300 border-gray-600/30">
                                         {{ $Application->status }}
