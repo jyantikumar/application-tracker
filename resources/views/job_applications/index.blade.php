@@ -54,7 +54,7 @@
                 <span class="text-2xl font-black text-white mt-1 block">{{ $TotalApplications }}</span>
             </div>
             <div class="bg-gray-800/60 border border-gray-700/60 rounded-xl p-3 text-center">
-                <span class="block text-[11px] font-semibold text-gray-400 uppercase">Interviews Done</span>
+                <span class="block text-[11px] font-semibold text-gray-400 uppercase">Interviewed Roles</span>
                 <span class="text-2xl font-black text-amber-400 mt-1 block">{{ $InterviewsDone }}</span>
             </div>
             <div class="bg-gray-800/60 border border-gray-700/60 rounded-xl p-3 text-center">

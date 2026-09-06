@@ -181,7 +181,7 @@
                 <div>
                     <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Status *</label>
                     <select name="status" required class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] transition-colors">
-                        @foreach(['Applied', 'Under Review', 'Currently Interviewing', 'Waiting response', 'Offered', 'Hired', 'Rejected'] as $StatusOption)
+                        @foreach(['Applied', 'Under Review', 'Currently Interviewing', 'Waiting response', 'Offered', 'Hired', 'Rejected', 'No Response'] as $StatusOption)
                             <option value="{{ $StatusOption }}" {{ old('status', $JobApplication->status) === $StatusOption ? 'selected' : '' }}>
                                 {{ $StatusOption }}
                             </option>

@@ -94,8 +94,10 @@
                     <option value="Applied">Applied</option>
                     <option value="Under Review">Under Review</option>
                     <option value="Currently Interviewing">Currently Interviewing</option>
+                    <option value="Interviewed">Interviewed</option>
                     <option value="Waiting response">Waiting Response</option>
                     <option value="Rejected">Rejected</option>
+                    <option value="No Response">No Response</option>
                 </select>
 
                 <span class="text-xs font-semibold px-3 py-2 rounded-lg bg-gray-800 text-gray-300 border border-gray-700">
@@ -137,8 +139,10 @@
 
                                 <!-- Formatted Salary Display -->
                                 <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-200">
-                                    <span class="text-[#92BA56] font-bold" x-text="Application.formatted_salary"></span>
-                                    <span class="text-gray-400 text-xs">/ <span x-text="Application.pay_rate_type.toLowerCase()"></span></span>
+                                    <span class="text-[#92BA56] font-bold" x-text="Application.formatted_salary || 'N/A'"></span>
+                                    <template x-if="Application.pay_rate_type">
+                                        <span class="text-gray-400 text-xs">/ <span x-text="Application.pay_rate_type.toLowerCase()"></span></span>
+                                    </template>
                                 </td>
 
                                 <!-- Date Applied -->
@@ -151,15 +155,15 @@
                                     <template x-if="Application.has_been_interviewed">
                                         <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                            Interviewed
+                                            Interviewed (<span x-text="getInterviews(Application).filter(i => i.status === 'Completed').length"></span>)
                                         </span>
                                     </template>
-                                    <template x-if="!Application.has_been_interviewed && Application.interviews && Application.interviews.filter(i => i.status === 'Scheduled').length > 0">
+                                    <template x-if="!Application.has_been_interviewed && getInterviews(Application).filter(i => i.status === 'Scheduled').length > 0">
                                         <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                                            Scheduled
+                                            Scheduled (<span x-text="getInterviews(Application).filter(i => i.status === 'Scheduled').length"></span>)
                                         </span>
                                     </template>
-                                    <template x-if="!Application.has_been_interviewed && (!Application.interviews || Application.interviews.filter(i => i.status === 'Scheduled').length === 0)">
+                                    <template x-if="!Application.has_been_interviewed && getInterviews(Application).filter(i => i.status === 'Scheduled').length === 0">
                                         <span class="text-xs text-gray-500">No interviews logged</span>
                                     </template>
                                 </td>
@@ -179,9 +183,9 @@
                                         </button>
 
                                         <!-- Open Interview Modal -->
-                                        <button @click="openInterviewModal(Application, Application.interviews || [])"
+                                        <button @click="openInterviewModal(Application, getInterviews(Application))"
                                                 class="px-3 py-1.5 text-xs font-medium text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 rounded-md border border-amber-500/20 transition-colors">
-                                            Interviews (<span x-text="Application.interviews ? Application.interviews.length : 0"></span>)
+                                            Interviews (<span x-text="getInterviews(Application).length"></span>)
                                         </button>
 
                                         <a :href="'/job-applications/' + Application.id + '/edit'" class="px-3 py-1.5 text-xs font-medium text-gray-300 bg-gray-700/50 hover:bg-gray-700 hover:text-white rounded-md border border-gray-600/40 transition-colors">
@@ -238,19 +242,19 @@
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                             <div class="bg-gray-900/60 p-3 rounded-xl border border-gray-700/50">
                                 <span class="text-[11px] text-gray-400 block font-medium">Hourly Rate</span>
-                                <span class="text-base font-bold text-white" x-text="SelectedApp.currency + ' ' + (Earnings.Hourly || '0.00')"></span>
+                                <span class="text-base font-bold text-white" x-text="(SelectedApp.currency || '') + ' ' + (Earnings.Hourly || '0.00')"></span>
                             </div>
                             <div class="bg-gray-900/60 p-3 rounded-xl border border-gray-700/50">
                                 <span class="text-[11px] text-gray-400 block font-medium">Daily Rate</span>
-                                <span class="text-base font-bold text-white" x-text="SelectedApp.currency + ' ' + (Earnings.Daily || '0.00')"></span>
+                                <span class="text-base font-bold text-white" x-text="(SelectedApp.currency || '') + ' ' + (Earnings.Daily || '0.00')"></span>
                             </div>
                             <div class="bg-gray-900/60 p-3 rounded-xl border border-gray-700/50">
                                 <span class="text-[11px] text-gray-400 block font-medium">Weekly Rate</span>
-                                <span class="text-base font-bold text-white" x-text="SelectedApp.currency + ' ' + (Earnings.Weekly || '0.00')"></span>
+                                <span class="text-base font-bold text-white" x-text="(SelectedApp.currency || '') + ' ' + (Earnings.Weekly || '0.00')"></span>
                             </div>
                             <div class="bg-gray-900/60 p-3 rounded-xl border border-gray-700/50">
                                 <span class="text-[11px] font-semibold text-[#92BA56] block">Monthly Rate</span>
-                                <span class="text-base font-bold text-[#92BA56]" x-text="SelectedApp.currency + ' ' + (Earnings.Monthly || '0.00')"></span>
+                                <span class="text-base font-bold text-[#92BA56]" x-text="(SelectedApp.currency || '') + ' ' + (Earnings.Monthly || '0.00')"></span>
                             </div>
                         </div>
                     </div>
@@ -334,7 +338,7 @@
                                               'bg-rose-500/10 text-rose-400 border border-rose-500/20': Interview.status === 'Cancelled'
                                           }" x-text="Interview.status"></span>
                                 </div>
-                                <p class="text-xs text-gray-400 mt-1" x-text="new Date(Interview.scheduled_at).toLocaleString()"></p>
+                                <p class="text-xs text-gray-400 mt-1" x-text="Interview.scheduled_at ? new Date(Interview.scheduled_at).toLocaleString() : 'Date N/A'"></p>
                                 <p class="text-xs text-gray-300 mt-1" x-text="Interview.notes || 'No notes added'"></p>
                             </div>
                         </div>
@@ -433,22 +437,33 @@
                 Earnings: {},
                 InterviewsList: [],
 
-                get FilteredApplications() {
-                    return this.AllApplications.filter(App => {
-                        const Query = this.SearchQuery.toLowerCase().trim();
-                        
-                        const MatchesSearch = !Query || 
-                            (App.company_name && App.company_name.toLowerCase().includes(Query)) ||
-                            (App.position && App.position.toLowerCase().includes(Query)) ||
-                            (App.city && App.city.toLowerCase().includes(Query)) ||
-                            (App.source && App.source.toLowerCase().includes(Query));
-
-                        const MatchesJobType = !this.JobTypeFilter || App.job_type === this.JobTypeFilter;
-                        const MatchesStatus = !this.StatusFilter || App.status === this.StatusFilter;
-
-                        return MatchesSearch && MatchesJobType && MatchesStatus;
-                    });
+                getInterviews(App) {
+                    return App.interviews || App.Interviews || [];
                 },
+
+                get FilteredApplications() {
+    return this.AllApplications.filter(App => {
+        const Query = this.SearchQuery.toLowerCase().trim();
+        
+        const MatchesSearch = !Query || 
+            (App.company_name && App.company_name.toLowerCase().includes(Query)) ||
+            (App.position && App.position.toLowerCase().includes(Query)) ||
+            (App.city && App.city.toLowerCase().includes(Query)) ||
+            (App.source && App.source.toLowerCase().includes(Query));
+
+        const MatchesJobType = !this.JobTypeFilter || App.job_type === this.JobTypeFilter;
+        
+        // Handle "Interviewed" status filter specifically
+        let MatchesStatus = true;
+        if (this.StatusFilter === 'Interviewed') {
+            const InterviewCount = this.getInterviews(App).length;
+            MatchesStatus = InterviewCount > 0 || App.has_been_interviewed || App.status === 'Interviewed';
+        } else if (this.StatusFilter) {
+            MatchesStatus = App.status === this.StatusFilter;
+        }
+        return MatchesSearch && MatchesJobType && MatchesStatus;
+    });
+},
 
                 openDetailsModal(App, Calculated) {
                     this.SelectedApp = App;
