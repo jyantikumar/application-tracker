@@ -182,4 +182,38 @@ public function store(Request $Request)
     return redirect()->route('job-applications.applications')
                      ->with('success', "Successfully imported {$ImportedCount} job applications.");
 }
+public function Edit(JobApplication $JobApplication)
+{
+    return view('job_applications.edit', compact('JobApplication'));
+}
+
+public function Update(Request $Request, JobApplication $JobApplication)
+{
+    $ValidatedData = $Request->validate([
+        'company_name'   => 'required|string|max:255',
+        'position'       => 'required|string|max:255',
+        'job_type'       => 'required|string|max:255',
+        
+        // Dynamic compensation validation matching store method
+        'salary'         => 'required_if:job_type,Remote|nullable|numeric|min:0',
+        'salary_min'     => 'required_unless:job_type,Remote|nullable|numeric|min:0',
+        'salary_max'     => 'required_unless:job_type,Remote|nullable|numeric|gte:salary_min',
+        
+        'currency'       => 'required|string|max:10',
+        'pay_rate_type'  => 'required|in:Monthly,Hourly',
+        'hours_per_week' => 'nullable|numeric|min:1|max:168',
+        'description'    => 'required|string',
+        'pros'           => 'nullable|string|max:255',
+        'cons'           => 'nullable|string|max:255',
+        'city'           => 'required|string|max:255',
+        'ApplicationURL' => 'required|url|max:255',
+        'source'         => 'required|string|max:255',
+        'status'         => 'required|string|max:255',
+    ]);
+
+    $JobApplication->update($ValidatedData);
+
+    return redirect()->route('job-applications.applications')
+                     ->with('success', 'Job application updated successfully.');
+}
 }

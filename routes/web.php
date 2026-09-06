@@ -27,3 +27,6 @@ Route::put('interviews/{Interview}', [InterviewController::class, 'Update'])->na
 Route::delete('interviews/{Interview}', [InterviewController::class, 'Destroy'])->name('interviews.destroy');
 
 Route::post('job-applications/import', [JobApplicationController::class, 'Import'])->name('job-applications.import');
+
+Route::get('job-applications/{JobApplication}/edit', [JobApplicationController::class, 'Edit'])->name('job-applications.edit');
+Route::put('job-applications/{JobApplication}', [JobApplicationController::class, 'Update'])->name('job-applications.update');

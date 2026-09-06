@@ -28,7 +28,7 @@ return new class extends Migration
             $table->string('pros', 255)->nullable();
             $table->string('cons', 255)->nullable();
             $table->string('city', 255);
-            $table->string('ApplicationURL');
+            $table->text('ApplicationURL')->nullable();
             $table->string('source', 255);
             $table->string('status', 255);
         });
