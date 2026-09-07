@@ -4,45 +4,59 @@ namespace App\Http\Controllers;
 
 use App\Models\JobApplication;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class JobApplicationController extends Controller
 {
     public function index()
     {
+        /** @var \App\Models\User $CurrentUser */
+        $CurrentUser = Auth::user();
+
+        // Base query scoped strictly to the logged-in user
+        $UserQuery = $CurrentUser->JobApplications();
+
         // Fetch top 10 recent applications ordered by created_at DESC
-        $RecentApplications = JobApplication::orderBy('created_at', 'DESC')->take(10)->get();
+        $RecentApplications = (clone $UserQuery)->orderBy('created_at', 'DESC')->take(10)->get();
 
         // 1. KPI Metrics
-        $TotalApplications = JobApplication::count();
+        $TotalApplications = (clone $UserQuery)->count();
 
         // Counts unique application posts that have at least 1 interview logged or are in an interviewing status
-        $InterviewsDone = JobApplication::whereHas('Interviews')
-            ->orWhereIn('status', ['Currently Interviewing', 'Interviewing', 'Interview Done', 'Interviews Done', 'Exam done'])
+        $InterviewsDone = (clone $UserQuery)
+            ->where(function ($Query) {
+                $Query->whereHas('Interviews')
+                      ->orWhereIn('status', ['Currently Interviewing', 'Interviewing', 'Interview Done', 'Interviews Done', 'Exam done']);
+            })
             ->count();
 
-        $AppliedCount          = JobApplication::where('status', 'Applied')->count();
-        $UnderReviewCount      = JobApplication::where('status', 'Under Review')->count();
-        $CurrentlyInterviewing = JobApplication::where('status', 'Currently Interviewing')->count();
-        $HiredCount            = JobApplication::where('status', 'Hired')->count();
-        $RejectedCount         = JobApplication::where('status', 'Rejected')->count();
-        $WaitingResponse       = JobApplication::where('status', 'Waiting response')->count();
+        $AppliedCount          = (clone $UserQuery)->where('status', 'Applied')->count();
+        $UnderReviewCount      = (clone $UserQuery)->where('status', 'Under Review')->count();
+        $CurrentlyInterviewing = (clone $UserQuery)->where('status', 'Currently Interviewing')->count();
+        $HiredCount            = (clone $UserQuery)->where('status', 'Hired')->count();
+        $RejectedCount         = (clone $UserQuery)->where('status', 'Rejected')->count();
+        $WaitingResponse       = (clone $UserQuery)->where('status', 'Waiting response')->count();
 
         // 2. Chart Aggregations
-        $ApplicationsBySource = JobApplication::select('source', DB::raw('count(*) as count'))
+        $ApplicationsBySource = (clone $UserQuery)
+            ->select('source', DB::raw('count(*) as count'))
             ->groupBy('source')
             ->pluck('count', 'source');
 
-        $ApplicationsByJobType = JobApplication::select('job_type', DB::raw('count(*) as count'))
+        $ApplicationsByJobType = (clone $UserQuery)
+            ->select('job_type', DB::raw('count(*) as count'))
             ->whereNotNull('job_type')
             ->groupBy('job_type')
             ->pluck('count', 'job_type');
 
-        $ApplicationsByLocation = JobApplication::select('city', DB::raw('count(*) as count'))
+        $ApplicationsByLocation = (clone $UserQuery)
+            ->select('city', DB::raw('count(*) as count'))
             ->groupBy('city')
             ->pluck('count', 'city');
 
-        $ApplicationsByDate = JobApplication::select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as count'))
+        $ApplicationsByDate = (clone $UserQuery)
+            ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as count'))
             ->groupBy('date')
             ->orderBy('date', 'DESC')
             ->pluck('count', 'date');
@@ -66,7 +80,11 @@ class JobApplicationController extends Controller
 
     public function applications()
     {
-        $JobApplications = JobApplication::with('Interviews')
+        /** @var \App\Models\User $CurrentUser */
+        $CurrentUser = Auth::user();
+
+        $JobApplications = $CurrentUser->JobApplications()
+            ->with('Interviews')
             ->orderBy('created_at', 'DESC')
             ->get();
 
@@ -99,7 +117,9 @@ class JobApplicationController extends Controller
             'status'         => 'required|string|max:255',
         ]);
 
-        JobApplication::create($ValidatedData);
+        /** @var \App\Models\User $CurrentUser */
+        $CurrentUser = Auth::user();
+        $CurrentUser->JobApplications()->create($ValidatedData);
 
         return redirect()->route('job-applications.index')
                          ->with('success', 'Job application recorded successfully.');
@@ -107,6 +127,10 @@ class JobApplicationController extends Controller
 
     public function destroy(JobApplication $JobApplication)
     {
+        if ($JobApplication->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $JobApplication->delete();
 
         return redirect()->route('job-applications.applications')
@@ -132,6 +156,8 @@ class JobApplicationController extends Controller
         }, $Header);
 
         $ImportedCount = 0;
+        /** @var \App\Models\User $CurrentUser */
+        $CurrentUser = Auth::user();
 
         while (($Row = fgetcsv($Handle, 2000, ',')) !== false) {
             if (empty(array_filter($Row))) {
@@ -156,7 +182,7 @@ class JobApplicationController extends Controller
                 continue;
             }
 
-            JobApplication::create([
+            $CurrentUser->JobApplications()->create([
                 'company_name'   => $CompanyName,
                 'position'       => $Position,
                 'job_type'       => !empty($RowData['job_type']) ? $RowData['job_type'] : 'Onsite',
@@ -187,11 +213,19 @@ class JobApplicationController extends Controller
 
     public function Edit(JobApplication $JobApplication)
     {
+        if ($JobApplication->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         return view('job_applications.edit', compact('JobApplication'));
     }
 
     public function Update(Request $Request, JobApplication $JobApplication)
     {
+        if ($JobApplication->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $ValidatedData = $Request->validate([
             'company_name'   => 'required|string|max:255',
             'position'       => 'required|string|max:255',

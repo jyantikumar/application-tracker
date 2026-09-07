@@ -1,37 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Job Application Tracker</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
-</head>
-<body class="bg-gray-900 text-gray-100 min-h-screen font-sans">
-
-    <!-- Reusable Sidebar Component -->
-    <x-sidebar active="dashboard" />
-
-    <!-- Mobile Header (Visible on smaller screens) -->
-    <header class="lg:hidden bg-gray-800/80 backdrop-blur-md border-b border-gray-700/50 p-4 sticky top-0 z-40 flex items-center justify-between">
-        <div class="flex items-center space-x-3">
-            <div class="p-1.5 bg-[#92BA56]/20 rounded-lg border border-[#92BA56]/30">
-                <svg class="w-5 h-5 text-[#92BA56]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                </svg>
-            </div>
-            <span class="font-bold text-lg tracking-tight text-white">Job Tracker</span>
-        </div>
-        <div class="flex items-center gap-2">
-            <a href="{{ route('job-applications.applications') }}" class="px-2.5 py-1.5 text-xs font-medium text-gray-300 bg-gray-800 rounded-lg border border-gray-700">Applications</a>
-            <a href="{{ route('job-applications.create') }}" class="px-2.5 py-1.5 text-xs font-semibold text-gray-900 bg-[#92BA56] rounded-lg">+ Log</a>
-        </div>
-    </header>
-
-    <!-- Main Content Wrapper -->
-    <div class="lg:pl-64 flex flex-col min-h-screen">
-        <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+<x-app-layout active="dashboard">
+    <div class="py-6 bg-[#0B1120] min-h-screen text-gray-100">
+        <!-- Expanded container to fill width -->
+        <div class="w-full lg:pl-72 px-4 sm:px-6 space-y-6">
 
             @if(session('success'))
                 <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-between">
@@ -40,7 +10,7 @@
                 </div>
             @endif
 
-            <!-- KPI Cards -->
+            <!-- KPI Cards Grid (Fills full width) -->
             <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
                 <div class="bg-gray-800/60 border border-gray-700/60 rounded-xl p-3 text-center">
                     <span class="block text-[11px] font-semibold text-gray-400 uppercase">Total Application</span>
@@ -76,7 +46,7 @@
                 </div>
             </div>
 
-            <!-- Charts Grid -->
+            <!-- Top Charts Row -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="bg-gray-800/40 border border-gray-700/60 rounded-xl p-5">
                     <h3 class="text-sm font-bold text-gray-200 mb-4 uppercase">Applications by Source</h3>
@@ -92,6 +62,7 @@
                 </div>
             </div>
 
+            <!-- Location Chart -->
             <div class="bg-gray-800/40 border border-gray-700/60 rounded-xl p-5">
                 <h3 class="text-sm font-bold text-gray-200 mb-4 uppercase">Applications by Location</h3>
                 <div class="h-64"><canvas id="LocationChart"></canvas></div>
@@ -148,9 +119,12 @@
                 </div>
             </div>
 
-        </main>
+        </div>
     </div>
 
+    <!-- Chart.js Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
     <script>
         const SourceData = @json($ApplicationsBySource);
         const DateData = @json($ApplicationsByDate);
@@ -183,5 +157,4 @@
             options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { display: false } }, scales: { x: { ticks: { color: '#9ca3af' }, grid: { color: '#374151' } }, y: { ticks: { color: '#9ca3af' }, grid: { display: false } } } }
         });
     </script>
-</body>
-</html>
+</x-app-layout>
