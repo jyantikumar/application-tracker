@@ -162,13 +162,20 @@
                         <div>
                             <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Source *</label>
                             <select name="source" required class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none transition-colors">
-                                <option value="LinkedIn" {{ old('source') === 'LinkedIn' ? 'selected' : '' }}>LinkedIn</option>
-                                <option value="Indeed" {{ old('source') === 'Indeed' ? 'selected' : '' }}>Indeed</option>
-                                <option value="JobStreet" {{ old('source') === 'JobStreet' ? 'selected' : '' }}>JobStreet</option>
-                                <option value="OLJ" {{ old('source') === 'OLJ' ? 'selected' : '' }}>OnlineJobs.ph (OLJ)</option>
-                                <option value="Company Website" {{ old('source') === 'Company Website' ? 'selected' : '' }}>Company Website</option>
-                                <option value="Referral" {{ old('source') === 'Referral' ? 'selected' : '' }}>Referral</option>
-                            </select>
+    <option value="BossJob" {{ old('source') === 'BossJob' ? 'selected' : '' }}>BossJob</option>
+    <option value="Career Fair" {{ old('source') === 'Career Fair' ? 'selected' : '' }}>Career Fair</option>
+    <option value="Career Page" {{ old('source') === 'Career Page' ? 'selected' : '' }}>Career Page</option>
+    <option value="Company Website" {{ old('source') === 'Company Website' ? 'selected' : '' }}>Company Website</option>
+    <option value="Direct" {{ old('source') === 'Direct' ? 'selected' : '' }}>Direct</option>
+    <option value="Facebook" {{ old('source') === 'Facebook' ? 'selected' : '' }}>Facebook</option>
+    <option value="Indeed" {{ old('source') === 'Indeed' ? 'selected' : '' }}>Indeed</option>
+    <option value="JobStreet" {{ old('source') === 'JobStreet' ? 'selected' : '' }}>JobStreet</option>
+    <option value="JobTarget" {{ old('source') === 'JobTarget' ? 'selected' : '' }}>JobTarget</option>
+    <option value="LinkedIn" {{ old('source') === 'LinkedIn' ? 'selected' : '' }}>LinkedIn</option>
+    <option value="OLJ" {{ old('source') === 'OLJ' ? 'selected' : '' }}>OnlineJobs.ph (OLJ)</option>
+    <option value="Prosple" {{ old('source') === 'Prosple' ? 'selected' : '' }}>Prosple</option>
+    <option value="Referral" {{ old('source') === 'Referral' ? 'selected' : '' }}>Referral</option>
+</select>
                         </div>
                     </div>
 

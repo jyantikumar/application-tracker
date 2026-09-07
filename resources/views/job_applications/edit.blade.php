@@ -163,11 +163,28 @@
                         <div>
                             <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Source *</label>
                             <select name="source" required class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none transition-colors">
-                                @foreach(['LinkedIn', 'Indeed', 'JobStreet', 'OLJ', 'BossJob', 'Prosple', 'Career Fair', 'Facebook', 'Company Website', 'Referral', 'Direct'] as $SourceOption)
-                                    <option value="{{ $SourceOption }}" {{ old('source', $JobApplication->source) === $SourceOption ? 'selected' : '' }}>
-                                        {{ $SourceOption }}
-                                    </option>
-                                @endforeach
+                              @foreach([
+    'BossJob',
+    'Career Fair',
+    'Career Page',
+    'Company Website',
+    'Direct',
+    'Facebook',
+    'Indeed',
+    'JobStreet',
+    'JobTarget',
+    'LinkedIn',
+    'OLJ' => 'OnlineJobs.ph (OLJ)',
+    'Prosple',
+    'Referral'
+] as $ValueOption => $LabelOption)
+    @php
+        $SourceValue = is_numeric($ValueOption) ? $LabelOption : $ValueOption;
+    @endphp
+    <option value="{{ $SourceValue }}" {{ old('source', $JobApplication->source) === $SourceValue ? 'selected' : '' }}>
+        {{ $LabelOption }}
+    </option>
+@endforeach
                             </select>
                         </div>
                     </div>
