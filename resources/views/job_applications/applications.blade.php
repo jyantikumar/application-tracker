@@ -11,10 +11,15 @@
                 </div>
                 <span class="font-bold text-lg tracking-tight text-white">Job Tracker</span>
             </div>
-            <div class="flex items-center gap-2">
-                <a href="{{ route('job-applications.index') }}" class="px-2.5 py-1.5 text-xs font-medium text-gray-300 bg-gray-800 rounded-lg border border-gray-700">Dashboard</a>
-                <a href="{{ route('job-applications.create') }}" class="px-2.5 py-1.5 text-xs font-semibold text-gray-900 bg-[#92BA56] rounded-lg">+ Log</a>
-            </div>
+            <div class="flex items-center gap-3">
+        <a href="{{ route('job-applications.create') }}" class="px-2.5 py-1.5 text-xs font-semibold text-gray-900 bg-[#92BA56] hover:bg-[#82a74a] rounded-lg transition-colors">+ Log</a>
+        <!-- Mobile Menu Toggle Button -->
+        <button @click="IsMobileMenuOpen = true" type="button" class="p-1 text-gray-400 hover:text-white rounded-lg focus:outline-none">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+        </button>
+    </div>
         </header>
 
         <!-- Main Content Wrapper -->
