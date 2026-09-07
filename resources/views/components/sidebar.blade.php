@@ -1,16 +1,41 @@
 @props(['active' => 'applications'])
 
-<!-- Fixed Left Sidebar Navigation -->
-<aside class="fixed top-0 left-0 h-screen w-64 bg-gray-800/90 backdrop-blur-md border-r border-gray-700/60 z-50 flex flex-col justify-between p-4 hidden lg:flex">
+<!-- Mobile Top Header Bar -->
+
+
+<!-- Mobile Drawer Backdrop -->
+<div x-show="IsMobileMenuOpen" 
+     x-cloak
+     @click="IsMobileMenuOpen = false"
+     x-transition:enter="transition-opacity ease-linear duration-300"
+     x-transition:enter-start="opacity-0"
+     x-transition:enter-end="opacity-100"
+     x-transition:leave="transition-opacity ease-linear duration-300"
+     x-transition:leave-start="opacity-100"
+     x-transition:leave-end="opacity-0"
+     class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-50 lg:hidden">
+</div>
+
+<!-- Sidebar Navigation -->
+<aside :class="IsMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'"
+       class="fixed top-0 left-0 h-screen w-64 bg-gray-800/95 backdrop-blur-md border-r border-gray-700/60 z-50 flex flex-col justify-between p-4 transition-transform duration-300 ease-in-out lg:translate-x-0">
     <div class="space-y-6">
         <!-- Brand Logo -->
-        <div class="flex items-center space-x-3 px-2 pt-2">
-            <div class="p-2 bg-[#92BA56]/20 rounded-lg border border-[#92BA56]/30">
-                <svg class="w-6 h-6 text-[#92BA56]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                </svg>
+        <div class="flex items-center justify-between px-2 pt-2">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-[#92BA56]/20 rounded-lg border border-[#92BA56]/30">
+                    <svg class="w-6 h-6 text-[#92BA56]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <span class="font-bold text-xl tracking-tight text-white">Job Tracker</span>
             </div>
-            <span class="font-bold text-xl tracking-tight text-white">Job Tracker</span>
+            <!-- Mobile Close Button -->
+            <button @click="IsMobileMenuOpen = false" class="lg:hidden text-gray-400 hover:text-white">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
         </div>
 
         <!-- Sidebar Navigation Links -->
@@ -43,7 +68,7 @@
 
     <!-- Action Buttons & User Profile Footer -->
     <div class="space-y-2 pt-4 border-t border-gray-700/60">
-        <button @click="IsImportModalOpen = true" 
+        <button @click="IsImportModalOpen = true; IsMobileMenuOpen = false" 
                 class="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-xs font-semibold text-gray-300 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl transition-colors">
             <svg class="w-4 h-4 text-[#92BA56]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>

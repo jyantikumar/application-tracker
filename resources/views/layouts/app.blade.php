@@ -33,7 +33,7 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="font-sans antialiased bg-[#0B1120] text-gray-100 min-h-screen">
+<body x-data="{ IsMobileMenuOpen: false }" class="font-sans antialiased bg-[#0B1120] text-gray-100 min-h-screen">
 
     <!-- Render Custom Sidebar Layout -->
    <x-sidebar :active="
@@ -48,4 +48,11 @@
     </main>
 
 </body>
+<script>
+window.addEventListener('pageshow', function (event) {
+        if (event.persisted) {
+            window.location.reload();
+        }
+    });
+</script>
 </html>
