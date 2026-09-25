@@ -51,27 +51,6 @@
     </style>
 
     <div class="flex flex-col min-h-screen bg-[#0B1120] text-gray-100">
-        
-        <!-- Mobile Header -->
-        <header class="lg:hidden bg-gray-800/80 backdrop-blur-md border-b border-gray-700/50 p-4 sticky top-0 z-40 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="p-1.5 bg-[#92BA56]/20 rounded-lg border border-[#92BA56]/30">
-                    <svg class="w-5 h-5 text-[#92BA56]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                    </svg>
-                </div>
-                <span class="font-bold text-lg tracking-tight text-white">Dashboard</span>
-            </div>
-            <div class="flex items-center gap-3">
-                <a href="{{ route('job-applications.create') }}" class="px-2.5 py-1.5 text-xs font-semibold text-gray-900 bg-[#92BA56] hover:bg-[#82a74a] rounded-lg transition-colors">+ Log</a>
-                <!-- Mobile Menu Toggle -->
-                <button x-on:click="IsMobileMenuOpen = true" type="button" class="p-1 text-gray-400 hover:text-white rounded-lg focus:outline-none">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                    </svg>
-                </button>
-            </div>
-        </header>
 
         <!-- Main Content Wrapper -->
         <main class="w-full lg:pl-72 flex-1 px-4 sm:px-6 py-6 space-y-6">

@@ -4,17 +4,7 @@
          @keydown.escape.window="IsAddSourceModalOpen = false; IsAddStatusModalOpen = false;">
 
         <!-- Mobile Header -->
-        <header class="lg:hidden bg-gray-800/80 backdrop-blur-md border-b border-gray-700/50 p-4 sticky top-0 z-40 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="p-1.5 bg-[#92BA56]/20 rounded-lg border border-[#92BA56]/30">
-                    <svg class="w-5 h-5 text-[#92BA56]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                    </svg>
-                </div>
-                <span class="font-bold text-lg tracking-tight text-white">Edit Application</span>
-            </div>
-            <a href="{{ route('job-applications.applications') }}" class="btn btn-xs btn-outline border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white">Back</a>
-        </header>
+         
 
         <!-- Main Content Wrapper -->
         <main class="lg:pl-72 flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">

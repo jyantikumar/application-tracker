@@ -59,6 +59,43 @@
         table.dataTable tbody tr:hover {
             background-color: rgba(31, 41, 55, 0.4) !important;
         }
+        /* Mobile: keep "Show X entries" and search input side by side */
+@media screen and (max-width: 767px) {
+    .dataTables_wrapper {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter {
+        float: none !important;
+        width: auto !important;
+        text-align: left !important;
+        margin-bottom: 0 !important;
+        flex: 0 1 auto;
+    }
+
+    /* Let the search field take the remaining space */
+    .dataTables_wrapper .dataTables_filter {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .dataTables_wrapper .dataTables_filter input {
+        width: 100% !important;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Table + info + pagination should always be on their own row */
+    .dataTables_wrapper > table,
+    .dataTables_wrapper > .dataTables_info,
+    .dataTables_wrapper > .dataTables_paginate {
+        flex: 0 0 100%;
+        width: 100%;
+    }
     </style>
 
     <div class="flex flex-col min-h-screen" x-data="statusesPage"
