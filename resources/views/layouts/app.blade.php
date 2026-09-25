@@ -37,13 +37,15 @@
 
     @php
         $ActiveNav = match(true) {
-            request()->routeIs('job-applications.index')        => 'dashboard',
-            request()->routeIs('job-applications.applications') => 'applications',
-            request()->routeIs('application-sources.*')         => 'sources',
-            request()->routeIs('application-statuses.*')        => 'statuses',
-            request()->routeIs('profile.*')                     => 'profile',
-            default                                             => '',
-        };
+    request()->routeIs('job-applications.index')                  => 'dashboard',
+    request()->routeIs('job-applications.applications')           => 'applications',
+    request()->routeIs('job-applications.create')                 => 'applications',
+    request()->routeIs('job-applications.edit')                   => 'applications',
+    request()->routeIs('application-sources.*')                   => 'sources',
+    request()->routeIs('application-statuses.*')                  => 'statuses',
+    request()->routeIs('profile.*')                               => 'profile',
+    default                                                       => '',
+};
     @endphp
 
     <!-- Render Custom Sidebar Layout -->
