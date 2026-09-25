@@ -35,12 +35,19 @@
 </head>
 <body x-data="{ IsMobileMenuOpen: false }" class="font-sans antialiased bg-[#0B1120] text-gray-100 min-h-screen">
 
+    @php
+        $ActiveNav = match(true) {
+            request()->routeIs('job-applications.index')        => 'dashboard',
+            request()->routeIs('job-applications.applications') => 'applications',
+            request()->routeIs('application-sources.*')         => 'sources',
+            request()->routeIs('application-statuses.*')        => 'statuses',
+            request()->routeIs('profile.*')                     => 'profile',
+            default                                             => '',
+        };
+    @endphp
+
     <!-- Render Custom Sidebar Layout -->
-   <x-sidebar :active="
-        request()->routeIs('job-applications.index') ? 'dashboard' : (
-        request()->routeIs('job-applications.applications') ? 'applications' : (
-        request()->routeIs('profile.*') ? 'profile' : ''
-    ))" />
+    <x-sidebar :active="$ActiveNav" />
 
     <!-- Page Content Slot -->
     <main class="flex-1">
@@ -49,10 +56,12 @@
 
 </body>
 <script>
-window.addEventListener('pageshow', function (event) {
+    window.addEventListener('pageshow', function (event) {
         if (event.persisted) {
             window.location.reload();
         }
     });
 </script>
+  <x-toast-host />
+    @stack('scripts')
 </html>

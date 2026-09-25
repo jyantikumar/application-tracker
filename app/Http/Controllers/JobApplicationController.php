@@ -31,12 +31,19 @@ class JobApplicationController extends Controller
             })
             ->count();
 
+        // Individual standard status counts
         $AppliedCount          = (clone $UserQuery)->where('status', 'Applied')->count();
         $UnderReviewCount      = (clone $UserQuery)->where('status', 'Under Review')->count();
         $CurrentlyInterviewing = (clone $UserQuery)->where('status', 'Currently Interviewing')->count();
         $HiredCount            = (clone $UserQuery)->where('status', 'Hired')->count();
         $RejectedCount         = (clone $UserQuery)->where('status', 'Rejected')->count();
         $WaitingResponse       = (clone $UserQuery)->where('status', 'Waiting response')->count();
+
+        // Dynamic grouping for all status values (including user-created custom statuses)
+        $StatusCounts = (clone $UserQuery)
+            ->select('status', DB::raw('count(*) as count'))
+            ->groupBy('status')
+            ->pluck('count', 'status');
 
         // 2. Chart Aggregations
         $ApplicationsBySource = (clone $UserQuery)
@@ -71,6 +78,7 @@ class JobApplicationController extends Controller
             'HiredCount',
             'RejectedCount',
             'WaitingResponse',
+            'StatusCounts',
             'ApplicationsBySource',
             'ApplicationsByJobType',
             'ApplicationsByLocation',
@@ -79,21 +87,43 @@ class JobApplicationController extends Controller
     }
 
     public function applications()
+{
+    $JobApplications = JobApplication::with('interviews')
+        ->orderByDesc('created_at')
+        ->get();
+
+    // Add these two lines:
+    $CustomStatuses = \App\Models\ApplicationStatus::orderBy('name')->pluck('name')->all();
+    $CustomSources  = \App\Models\ApplicationSource::orderBy('name')->pluck('name')->all();
+
+    return view('job_applications.applications', compact(
+        'JobApplications',
+        'CustomStatuses',
+        'CustomSources'
+    ));
+}
+
+    public function create()
     {
         /** @var \App\Models\User $CurrentUser */
         $CurrentUser = Auth::user();
 
-        $JobApplications = $CurrentUser->JobApplications()
-            ->with('Interviews')
-            ->orderBy('created_at', 'DESC')
-            ->get();
+        $DefaultSources = [
+            'BossJob', 'Career Fair', 'Career Page', 'Company Website',
+            'Direct', 'Facebook', 'Indeed', 'JobStreet', 'JobTarget',
+            'LinkedIn', 'OnlineJobs.ph (OLJ)', 'Prosple', 'Referral'
+        ];
+        $UserSources = $CurrentUser->sources()->pluck('name')->toArray();
+        $CustomSources = array_values(array_unique(array_merge($DefaultSources, $UserSources)));
 
-        return view('job_applications.applications', compact('JobApplications'));
-    }
+        $DefaultStatuses = [
+            'Applied', 'Under Review', 'Currently Interviewing',
+            'Waiting response', 'Offered', 'Hired', 'Rejected', 'No Response'
+        ];
+        $UserStatuses = $CurrentUser->statuses()->pluck('name')->toArray();
+        $CustomStatuses = array_values(array_unique(array_merge($DefaultStatuses, $UserStatuses)));
 
-    public function create()
-    {
-        return view('job_applications.create');
+        return view('job_applications.create', compact('CustomSources', 'CustomStatuses'));
     }
 
     public function store(Request $Request)
@@ -217,7 +247,33 @@ class JobApplicationController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        return view('job_applications.edit', compact('JobApplication'));
+        /** @var \App\Models\User $CurrentUser */
+        $CurrentUser = Auth::user();
+
+        $DefaultSources = [
+            'BossJob', 'Career Fair', 'Career Page', 'Company Website',
+            'Direct', 'Facebook', 'Indeed', 'JobStreet', 'JobTarget',
+            'LinkedIn', 'OnlineJobs.ph (OLJ)', 'Prosple', 'Referral'
+        ];
+        $UserSources = $CurrentUser->sources()->pluck('name')->toArray();
+        $CustomSources = array_merge($DefaultSources, $UserSources);
+        if ($JobApplication->source && !in_array($JobApplication->source, $CustomSources)) {
+            $CustomSources[] = $JobApplication->source;
+        }
+        $CustomSources = array_values(array_unique($CustomSources));
+
+        $DefaultStatuses = [
+            'Applied', 'Under Review', 'Currently Interviewing',
+            'Waiting response', 'Offered', 'Hired', 'Rejected', 'No Response'
+        ];
+        $UserStatuses = $CurrentUser->statuses()->pluck('name')->toArray();
+        $CustomStatuses = array_merge($DefaultStatuses, $UserStatuses);
+        if ($JobApplication->status && !in_array($JobApplication->status, $CustomStatuses)) {
+            $CustomStatuses[] = $JobApplication->status;
+        }
+        $CustomStatuses = array_values(array_unique($CustomStatuses));
+
+        return view('job_applications.edit', compact('JobApplication', 'CustomSources', 'CustomStatuses'));
     }
 
     public function Update(Request $Request, JobApplication $JobApplication)

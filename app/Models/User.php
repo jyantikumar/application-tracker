@@ -57,4 +57,33 @@ class User extends Authenticatable
     {
         return $this->hasMany(JobApplication::class);
     }
+    public function sources(): \Illuminate\Database\Eloquent\Relations\HasMany
+{
+    return $this->hasMany(ApplicationSource::class);
+}
+
+public function statuses(): \Illuminate\Database\Eloquent\Relations\HasMany
+{
+    return $this->hasMany(ApplicationStatus::class);
+}
+protected static function booted(): void
+{
+    static::created(function (User $User) {
+        $DefaultSources = [
+            'LinkedIn', 'Indeed', 'JobStreet', 'OnlineJobs.ph (OLJ)',
+            'Referral', 'Company Website', 'Direct',
+        ];
+        foreach ($DefaultSources as $Name) {
+            $User->sources()->create(['name' => $Name]);
+        }
+
+        $DefaultStatuses = [
+            'Applied', 'Under Review', 'Currently Interviewing',
+            'Waiting response', 'Offered', 'Hired', 'Rejected', 'No Response',
+        ];
+        foreach ($DefaultStatuses as $Name) {
+            $User->statuses()->create(['name' => $Name]);
+        }
+    });
+}
 }

@@ -1,6 +1,8 @@
 <x-app-layout>
-    <div class="flex flex-col min-h-screen">
-        
+    <div class="flex flex-col min-h-screen" x-data="FormHandler()"
+         x-effect="document.body.classList.toggle('overflow-hidden', IsAddSourceModalOpen || IsAddStatusModalOpen)"
+         @keydown.escape.window="IsAddSourceModalOpen = false; IsAddStatusModalOpen = false;">
+
         <!-- Mobile Header -->
         <header class="lg:hidden bg-gray-800/80 backdrop-blur-md border-b border-gray-700/50 p-4 sticky top-0 z-40 flex items-center justify-between">
             <div class="flex items-center space-x-3">
@@ -11,11 +13,11 @@
                 </div>
                 <span class="font-bold text-lg tracking-tight text-white">Log Application</span>
             </div>
-            <a href="{{ route('job-applications.applications') }}" class="px-2.5 py-1.5 text-xs font-medium text-gray-300 bg-gray-800 rounded-lg border border-gray-700">Back</a>
+            <a href="{{ route('job-applications.applications') }}" class="btn btn-xs btn-outline border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white">Back</a>
         </header>
 
         <!-- Main Content Wrapper -->
-        <main class="lg:pl-64 flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6" x-data="{ JobType: '{{ old('job_type', 'Remote') }}' }">
+        <main class="lg:pl-64 flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
             <!-- Page Header -->
             <div class="flex items-center justify-between">
@@ -40,85 +42,78 @@
             @endif
 
             <div class="bg-gray-800/40 backdrop-blur-sm border border-gray-700/60 rounded-xl p-6 sm:p-8 shadow-xl">
-                <form action="{{ route('job-applications.store') }}" method="POST" class="space-y-6">
+                <form action="{{ route('job-applications.store') }}" method="POST"
+                      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-5">
                     @csrf
 
-                    <!-- Company & Position -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Company Name *</label>
-                            <input type="text" name="company_name" value="{{ old('company_name') }}" required
-                                   class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none transition-colors"
-                                   placeholder="e.g. Stripe">
-                        </div>
-                        <div>
-                            <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Position *</label>
-                            <input type="text" name="position" value="{{ old('position') }}" required
-                                   class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none transition-colors"
-                                   placeholder="e.g. Frontend Developer">
-                        </div>
+                    <!-- Row 1: Company + Position + Job Type + City -->
+                    <div class="lg:col-span-4">
+                        <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Company Name *</label>
+                        <input type="text" name="company_name" value="{{ old('company_name') }}" required
+                               class="input w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none transition-colors"
+                               placeholder="e.g. Stripe">
+                    </div>
+                    <div class="lg:col-span-4">
+                        <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Position *</label>
+                        <input type="text" name="position" value="{{ old('position') }}" required
+                               class="input w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none transition-colors"
+                               placeholder="e.g. Frontend Developer">
+                    </div>
+                    <div class="lg:col-span-2">
+                        <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Work Setup *</label>
+                        <select name="job_type" x-model="JobType" required
+                                class="select w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none transition-colors">
+                            <option value="Remote">Remote</option>
+                            <option value="Hybrid">Hybrid</option>
+                            <option value="Onsite">Onsite</option>
+                            <option value="Contract">Contract</option>
+                            <option value="Freelance">Freelance</option>
+                        </select>
+                    </div>
+                    <div class="lg:col-span-2">
+                        <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">City *</label>
+                        <input type="text" name="city" value="{{ old('city') }}" required
+                               class="input w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none transition-colors"
+                               placeholder="Manila / Remote">
                     </div>
 
-                    <!-- Work Setup & Location -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Work Setup / Job Type *</label>
-                            <select name="job_type" x-model="JobType" required
-                                    class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none transition-colors">
-                                <option value="Remote">Remote / Online</option>
-                                <option value="Hybrid">Hybrid</option>
-                                <option value="Onsite">Onsite</option>
-                                <option value="Contract">Contract</option>
-                                <option value="Freelance">Freelance</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">City / Location *</label>
-                            <input type="text" name="city" value="{{ old('city') }}" required
-                                   class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none transition-colors"
-                                   placeholder="e.g. Manila / Remote">
-                        </div>
-                    </div>
-
-                    <!-- Dynamic Compensation Section -->
-                    <div class="p-4 rounded-xl bg-gray-900/40 border border-gray-700/50 space-y-4">
+                    <!-- Row 2: Compensation Block (full width) -->
+                    <div class="lg:col-span-12 p-4 rounded-xl bg-gray-900/40 border border-gray-700/50 space-y-4">
                         <div class="flex items-center justify-between">
                             <h3 class="text-xs font-bold text-[#92BA56] uppercase tracking-wider">Compensation Log</h3>
                             <span class="text-[11px] text-gray-400" x-text="JobType === 'Remote' ? 'Exact Remote Rate Log' : 'Onsite / Hybrid Salary Range'"></span>
                         </div>
 
-                        <!-- Remote Dynamic Compensation -->
+                        <!-- Remote: 4 fields in one row -->
                         <template x-if="JobType === 'Remote'">
-                            <div class="space-y-4">
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                    <div>
-                                        <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Currency *</label>
-                                        <select name="currency" required class="w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none">
-                                            <option value="USD" {{ old('currency') === 'USD' ? 'selected' : '' }}>USD ($)</option>
-                                            <option value="PHP" {{ old('currency') === 'PHP' ? 'selected' : '' }}>PHP (₱)</option>
-                                            <option value="EUR" {{ old('currency') === 'EUR' ? 'selected' : '' }}>EUR (€)</option>
-                                            <option value="GBP" {{ old('currency') === 'GBP' ? 'selected' : '' }}>GBP (£)</option>
-                                            <option value="AUD" {{ old('currency') === 'AUD' ? 'selected' : '' }}>AUD (A$)</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Amount *</label>
-                                        <input type="number" step="0.01" name="salary" value="{{ old('salary') }}" required
-                                               class="w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none"
-                                               placeholder="e.g. 20 or 3000">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Pay Frequency *</label>
-                                        <select name="pay_rate_type" required class="w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none">
-                                            <option value="Hourly" {{ old('pay_rate_type') === 'Hourly' ? 'selected' : '' }}>Hourly Rate</option>
-                                            <option value="Monthly" {{ old('pay_rate_type') === 'Monthly' ? 'selected' : '' }}>Monthly Rate</option>
-                                        </select>
-                                    </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div>
+                                    <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Currency *</label>
+                                    <select name="currency" required class="select w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none">
+                                        <option value="USD" {{ old('currency') === 'USD' ? 'selected' : '' }}>USD ($)</option>
+                                        <option value="PHP" {{ old('currency') === 'PHP' ? 'selected' : '' }}>PHP (₱)</option>
+                                        <option value="EUR" {{ old('currency') === 'EUR' ? 'selected' : '' }}>EUR (€)</option>
+                                        <option value="GBP" {{ old('currency') === 'GBP' ? 'selected' : '' }}>GBP (£)</option>
+                                        <option value="AUD" {{ old('currency') === 'AUD' ? 'selected' : '' }}>AUD (A$)</option>
+                                    </select>
                                 </div>
                                 <div>
-                                    <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Hours Per Week *</label>
+                                    <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Amount *</label>
+                                    <input type="number" step="0.01" name="salary" value="{{ old('salary') }}" required
+                                           class="input w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none"
+                                           placeholder="e.g. 20 or 3000">
+                                </div>
+                                <div>
+                                    <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Pay Frequency *</label>
+                                    <select name="pay_rate_type" required class="select w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none">
+                                        <option value="Hourly" {{ old('pay_rate_type') === 'Hourly' ? 'selected' : '' }}>Hourly Rate</option>
+                                        <option value="Monthly" {{ old('pay_rate_type') === 'Monthly' ? 'selected' : '' }}>Monthly Rate</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Hours / Week *</label>
                                     <input type="number" step="0.5" name="hours_per_week" value="{{ old('hours_per_week', 40) }}" required
-                                           class="w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none"
+                                           class="input w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none"
                                            placeholder="Standard: 40">
                                 </div>
                                 <input type="hidden" name="salary_min" value="">
@@ -126,22 +121,20 @@
                             </div>
                         </template>
 
-                        <!-- Onsite Range Salary Logging -->
+                        <!-- Onsite: 2 fields in one row -->
                         <template x-if="JobType !== 'Remote'">
-                            <div class="space-y-4">
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Minimum Monthly Salary (PHP ₱) *</label>
-                                        <input type="number" step="0.01" name="salary_min" value="{{ old('salary_min') }}" required
-                                               class="w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none"
-                                               placeholder="e.g. 25000">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Maximum Monthly Salary (PHP ₱) *</label>
-                                        <input type="number" step="0.01" name="salary_max" value="{{ old('salary_max') }}" required
-                                               class="w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none"
-                                               placeholder="e.g. 35000">
-                                    </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Minimum Monthly Salary (PHP ₱) *</label>
+                                    <input type="number" step="0.01" name="salary_min" value="{{ old('salary_min') }}" required
+                                           class="input w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none"
+                                           placeholder="e.g. 25000">
+                                </div>
+                                <div>
+                                    <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Maximum Monthly Salary (PHP ₱) *</label>
+                                    <input type="number" step="0.01" name="salary_max" value="{{ old('salary_max') }}" required
+                                           class="input w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none"
+                                           placeholder="e.g. 35000">
                                 </div>
                                 <input type="hidden" name="salary" value="">
                                 <input type="hidden" name="currency" value="PHP">
@@ -151,73 +144,212 @@
                         </template>
                     </div>
 
-                    <!-- URL & Source -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Application URL *</label>
-                            <input type="url" name="ApplicationURL" value="{{ old('ApplicationURL') }}" required
-                                   class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none transition-colors"
-                                   placeholder="https://company.com/careers/123">
-                        </div>
-                        <div>
-                            <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Source *</label>
-                            <select name="source" required class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none transition-colors">
-    <option value="BossJob" {{ old('source') === 'BossJob' ? 'selected' : '' }}>BossJob</option>
-    <option value="Career Fair" {{ old('source') === 'Career Fair' ? 'selected' : '' }}>Career Fair</option>
-    <option value="Career Page" {{ old('source') === 'Career Page' ? 'selected' : '' }}>Career Page</option>
-    <option value="Company Website" {{ old('source') === 'Company Website' ? 'selected' : '' }}>Company Website</option>
-    <option value="Direct" {{ old('source') === 'Direct' ? 'selected' : '' }}>Direct</option>
-    <option value="Facebook" {{ old('source') === 'Facebook' ? 'selected' : '' }}>Facebook</option>
-    <option value="Indeed" {{ old('source') === 'Indeed' ? 'selected' : '' }}>Indeed</option>
-    <option value="JobStreet" {{ old('source') === 'JobStreet' ? 'selected' : '' }}>JobStreet</option>
-    <option value="JobTarget" {{ old('source') === 'JobTarget' ? 'selected' : '' }}>JobTarget</option>
-    <option value="LinkedIn" {{ old('source') === 'LinkedIn' ? 'selected' : '' }}>LinkedIn</option>
-    <option value="OLJ" {{ old('source') === 'OLJ' ? 'selected' : '' }}>OnlineJobs.ph (OLJ)</option>
-    <option value="Prosple" {{ old('source') === 'Prosple' ? 'selected' : '' }}>Prosple</option>
-    <option value="Referral" {{ old('source') === 'Referral' ? 'selected' : '' }}>Referral</option>
-</select>
-                        </div>
+                    <!-- Row 3: URL + Source + Status -->
+                    <div class="lg:col-span-6">
+                        <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Application URL *</label>
+                        <input type="url" name="ApplicationURL" value="{{ old('ApplicationURL') }}" required
+                               class="input w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none transition-colors"
+                               placeholder="https://company.com/careers/123">
                     </div>
-
-                    <!-- Status -->
-                    <div>
-                        <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Status *</label>
-                        <select name="status" required class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none transition-colors">
-                            <option value="Applied" {{ old('status') === 'Applied' ? 'selected' : '' }}>Applied</option>
-                            <option value="Under Review" {{ old('status') === 'Under Review' ? 'selected' : '' }}>Under Review</option>
-                            <option value="Currently Interviewing" {{ old('status') === 'Currently Interviewing' ? 'selected' : '' }}>Currently Interviewing</option>
-                            <option value="Waiting response" {{ old('status') === 'Waiting response' ? 'selected' : '' }}>Waiting Response</option>
-                            <option value="Offered" {{ old('status') === 'Offered' ? 'selected' : '' }}>Offered</option>
-                            <option value="Hired" {{ old('status') === 'Hired' ? 'selected' : '' }}>Hired</option>
-                            <option value="Rejected" {{ old('status') === 'Rejected' ? 'selected' : '' }}>Rejected</option>
+                    <div class="lg:col-span-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold">Source *</label>
+                            <button type="button" @click="IsAddSourceModalOpen = true" class="text-xs text-[#92BA56] hover:underline font-semibold">+ Add</button>
+                        </div>
+                        <select name="source" x-model="SelectedSource" required class="select w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none transition-colors">
+                            <template x-for="Source in SourcesList" :key="Source">
+                                <option :value="Source" x-text="Source" :selected="Source === SelectedSource"></option>
+                            </template>
+                        </select>
+                    </div>
+                    <div class="lg:col-span-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold">Status *</label>
+                            <button type="button" @click="IsAddStatusModalOpen = true" class="text-xs text-[#92BA56] hover:underline font-semibold">+ Add</button>
+                        </div>
+                        <select name="status" x-model="SelectedStatus" required class="select w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none transition-colors">
+                            <template x-for="Status in StatusesList" :key="Status">
+                                <option :value="Status" x-text="Status" :selected="Status === SelectedStatus"></option>
+                            </template>
                         </select>
                     </div>
 
-                    <!-- Description -->
-                    <div>
+                    <!-- Row 4: Description -->
+                    <div class="lg:col-span-12">
                         <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Job Description *</label>
-                        <textarea name="description" rows="4" required class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none transition-colors">{{ old('description') }}</textarea>
+                        <textarea name="description" rows="3" required class="textarea w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none transition-colors">{{ old('description') }}</textarea>
                     </div>
 
-                    <!-- Pros & Cons -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Pros (Optional)</label>
-                            <input type="text" name="pros" value="{{ old('pros') }}" class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none transition-colors">
-                        </div>
-                        <div>
-                            <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Cons (Optional)</label>
-                            <input type="text" name="cons" value="{{ old('cons') }}" class="w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none transition-colors">
-                        </div>
+                    <!-- Row 5: Pros + Cons -->
+                    <div class="lg:col-span-6">
+                        <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Pros (Optional)</label>
+                        <input type="text" name="pros" value="{{ old('pros') }}" class="input w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none transition-colors">
+                    </div>
+                    <div class="lg:col-span-6">
+                        <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Cons (Optional)</label>
+                        <input type="text" name="cons" value="{{ old('cons') }}" class="input w-full bg-gray-900/60 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none transition-colors">
                     </div>
 
-                    <!-- Actions -->
-                    <div class="flex items-center justify-end gap-4 pt-4 border-t border-gray-700/60">
-                        <a href="{{ route('job-applications.applications') }}" class="px-5 py-2.5 text-sm font-medium text-gray-400 hover:text-white transition-colors">Cancel</a>
-                        <button type="submit" class="px-6 py-2.5 text-sm font-semibold text-gray-900 bg-[#92BA56] hover:bg-[#82a74a] rounded-lg shadow-md shadow-[#92BA56]/20 transition-all">Save Application</button>
+                    <!-- Row 6: Actions -->
+                    <div class="lg:col-span-12 flex items-center justify-end gap-3 pt-4 border-t border-gray-700/60">
+                        <a href="{{ route('job-applications.applications') }}"
+                           class="btn btn-sm btn-ghost text-gray-400 hover:text-white">Cancel</a>
+                        <button type="submit"
+                                class="btn btn-sm bg-[#92BA56] border-0 text-gray-900 hover:bg-[#82a74a] shadow-md shadow-[#92BA56]/20">
+                            Save Application
+                        </button>
                     </div>
                 </form>
             </div>
         </main>
+
+        <!-- ============================================================
+             Modal: Add Custom Source
+             ============================================================ -->
+        <div x-show="IsAddSourceModalOpen" x-cloak
+             class="fixed inset-0 z-50 flex items-center justify-center p-4"
+             role="dialog" aria-modal="true" aria-labelledby="add-source-title">
+            <div x-show="IsAddSourceModalOpen" x-transition.opacity @click="IsAddSourceModalOpen = false"
+                 class="absolute inset-0 bg-gray-950/80 backdrop-blur-sm"></div>
+
+            <div x-show="IsAddSourceModalOpen" x-transition
+                 class="relative z-10 max-w-md w-full bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl p-6 space-y-4">
+
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h3 id="add-source-title" class="text-lg font-bold text-white">Add Custom Job Source</h3>
+                        <p class="text-xs text-gray-400 mt-0.5">This source will be saved for future applications.</p>
+                    </div>
+                    <button type="button" @click="IsAddSourceModalOpen = false"
+                            class="btn btn-sm btn-circle btn-text text-gray-400 hover:text-white" aria-label="Close">&times;</button>
+                </div>
+
+                <input type="text" x-model="NewSourceInput" @keydown.enter.prevent="addSource()"
+                       class="input w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-[#92BA56]"
+                       placeholder="e.g. Wellfound, Discord...">
+
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" @click="IsAddSourceModalOpen = false"
+                            class="btn btn-sm btn-outline border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white">
+                        Cancel
+                    </button>
+                    <button type="button" @click="addSource()"
+                            class="btn btn-sm bg-[#92BA56] border-0 text-gray-950 hover:bg-[#82a74a]">
+                        Add Source
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             Modal: Add Custom Status
+             ============================================================ -->
+        <div x-show="IsAddStatusModalOpen" x-cloak
+             class="fixed inset-0 z-50 flex items-center justify-center p-4"
+             role="dialog" aria-modal="true" aria-labelledby="add-status-title">
+            <div x-show="IsAddStatusModalOpen" x-transition.opacity @click="IsAddStatusModalOpen = false"
+                 class="absolute inset-0 bg-gray-950/80 backdrop-blur-sm"></div>
+
+            <div x-show="IsAddStatusModalOpen" x-transition
+                 class="relative z-10 max-w-md w-full bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl p-6 space-y-4">
+
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h3 id="add-status-title" class="text-lg font-bold text-white">Add Custom Application Status</h3>
+                        <p class="text-xs text-gray-400 mt-0.5">This status will be saved for future applications.</p>
+                    </div>
+                    <button type="button" @click="IsAddStatusModalOpen = false"
+                            class="btn btn-sm btn-circle btn-text text-gray-400 hover:text-white" aria-label="Close">&times;</button>
+                </div>
+
+                <input type="text" x-model="NewStatusInput" @keydown.enter.prevent="addStatus()"
+                       class="input w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-[#92BA56]"
+                       placeholder="e.g. Assessment Sent, Negotiation...">
+
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" @click="IsAddStatusModalOpen = false"
+                            class="btn btn-sm btn-outline border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white">
+                        Cancel
+                    </button>
+                    <button type="button" @click="addStatus()"
+                            class="btn btn-sm bg-[#92BA56] border-0 text-gray-950 hover:bg-[#82a74a]">
+                        Add Status
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </div>
+
+    <script>
+        function FormHandler() {
+            return {
+                JobType: '{{ old('job_type', 'Remote') }}',
+                SelectedSource: '{{ old('source', $CustomSources[0] ?? 'LinkedIn') }}',
+                SelectedStatus: '{{ old('status', $CustomStatuses[0] ?? 'Applied') }}',
+                SourcesList: @json($CustomSources ?? []),
+                StatusesList: @json($CustomStatuses ?? []),
+                IsAddSourceModalOpen: false,
+                IsAddStatusModalOpen: false,
+                NewSourceInput: '',
+                NewStatusInput: '',
+
+                async addSource() {
+    const Name = this.NewSourceInput.trim();
+    if (!Name) return;
+
+    try {
+        const Res = await fetch('{{ route('application-sources.store') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ name: Name }),
+        });
+
+        if (!Res.ok) throw new Error('Request failed');
+
+        if (!this.SourcesList.includes(Name)) this.SourcesList.push(Name);
+        this.SelectedSource = Name;
+        this.NewSourceInput = '';
+        this.IsAddSourceModalOpen = false;
+
+        window.toast.success('Source added', `"${Name}" is now selectable.`);
+    } catch (err) {
+        window.toast.error('Could not add source', 'Please check your connection and try again.');
+    }
+},
+
+async addStatus() {
+    const Name = this.NewStatusInput.trim();
+    if (!Name) return;
+
+    try {
+        const Res = await fetch('{{ route('application-statuses.store') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ name: Name }),
+        });
+
+        if (!Res.ok) throw new Error('Request failed');
+
+        if (!this.StatusesList.includes(Name)) this.StatusesList.push(Name);
+        this.SelectedStatus = Name;
+        this.NewStatusInput = '';
+        this.IsAddStatusModalOpen = false;
+
+        window.toast.success('Status added', `"${Name}" is now selectable.`);
+    } catch (err) {
+        window.toast.error('Could not add status', 'Please check your connection and try again.');
+    }
+},
+            }
+        }
+    </script>
 </x-app-layout>
