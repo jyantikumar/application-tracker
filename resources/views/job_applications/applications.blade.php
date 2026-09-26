@@ -230,24 +230,33 @@
                                         {{ $Application->created_at ? \Carbon\Carbon::parse($Application->created_at)->format('M j, Y') : 'N/A' }}
                                     </td>
 
-                                    <td class="py-4 px-6 whitespace-nowrap">
-                                        @if(!empty($Application->has_been_interviewed) || $CompletedInterviews > 0)
-                                            <span class="badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 gap-1 text-xs font-semibold py-2">
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                                Interviewed ({{ $CompletedInterviews }})
-                                            </span>
-                                        @elseif($ScheduledInterviews > 0)
-                                            <span class="badge bg-amber-500/10 text-amber-400 border border-amber-500/20 gap-1 text-xs font-semibold py-2">
-                                                Scheduled ({{ $ScheduledInterviews }})
-                                            </span>
-                                        @else
-                                            <span class="text-xs text-gray-500">No interviews logged</span>
-                                        @endif
-                                    </td>
+                                  <td class="py-4 px-6 whitespace-nowrap">
+    @if(!empty($Application->has_been_interviewed) || $CompletedInterviews > 0)
+        <!-- Show Interviewed Badge -->
+      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            Interviewed
+        </span>
+        
+    @elseif($ScheduledInterviews > 0)
+        <!-- Show Scheduled Badge ONLY if not interviewed -->
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-semibold">
+            Scheduled ({{ $ScheduledInterviews }})
+        </span>
+        
+    @else
+        <!-- Show Nothing if no interviews exist -->
+        <span class="text-xs text-gray-500">No interviews logged</span>
+    @endif
+</td>
 
                                     <td class="py-4 px-6 whitespace-nowrap">
-                                        <span class="badge bg-gray-800/80 text-gray-300 border border-gray-700 text-xs py-2">{{ $Application->status }}</span>
-                                    </td>
+                                    <span class="px-2.5 py-1 rounded-full text-xs font-medium border bg-gray-700/50 text-gray-300 border-gray-600/30">
+                                        {{ $Application->status }}
+                                    </span>                           
+                                        </td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -702,7 +711,7 @@
             var Table = jQuery('#ApplicationsTable').DataTable({
                 pageLength: 10,
                 lengthMenu: [10, 25, 50, 100],
-                ordering: true,
+                ordering: false,
                 responsive: true,
                 language: {
                     search: "_INPUT_",

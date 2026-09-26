@@ -1,83 +1,4 @@
 <x-app-layout>
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
-
-    <style>
-        [x-cloak] { display: none !important; }
-
-        .dataTables_wrapper .dataTables_length select,
-        .dataTables_wrapper .dataTables_filter input {
-            background-color: rgba(31, 41, 55, 0.8) !important;
-            border: 1px solid rgba(55, 65, 81, 0.8) !important;
-            color: #F3F4F6 !important;
-            border-radius: 0.5rem !important;
-            padding: 0.375rem 0.75rem !important;
-            font-size: 0.75rem !important;
-            outline: none !important;
-        }
-        .dataTables_wrapper .dataTables_filter input:focus,
-        .dataTables_wrapper .dataTables_length select:focus { border-color: #92BA56 !important; }
-        .dataTables_wrapper .dataTables_info,
-        .dataTables_wrapper .dataTables_length,
-        .dataTables_wrapper .dataTables_filter {
-            color: #9CA3AF !important; font-size: 0.75rem !important; margin-bottom: 1rem !important;
-        }
-        .dataTables_wrapper .dataTables_paginate .paginate_button {
-            color: #D1D5DB !important; border-radius: 0.375rem !important; border: none !important;
-            font-size: 0.75rem !important; padding: 0.25rem 0.625rem !important;
-        }
-        .dataTables_wrapper .dataTables_paginate .paginate_button.current,
-        .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
-            background: #92BA56 !important; color: #0B1120 !important; font-weight: 700 !important; border: none !important;
-        }
-        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-            background: rgba(55, 65, 81, 0.8) !important; color: #FFFFFF !important; border: none !important;
-        }
-        table.dataTable thead th { border-bottom: 1px solid rgba(55, 65, 81, 0.6) !important; }
-        table.dataTable.no-footer { border-bottom: 1px solid rgba(55, 65, 81, 0.6) !important; }
-        table.dataTable tbody tr { background-color: transparent !important; }
-        table.dataTable tbody tr:hover { background-color: rgba(31, 41, 55, 0.4) !important; }
-        /* Mobile: keep "Show X entries" and search input side by side */
-@media screen and (max-width: 767px) {
-    .dataTables_wrapper {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .dataTables_wrapper .dataTables_length,
-    .dataTables_wrapper .dataTables_filter {
-        float: none !important;
-        width: auto !important;
-        text-align: left !important;
-        margin-bottom: 0 !important;
-        flex: 0 1 auto;
-    }
-
-    /* Let the search field take the remaining space */
-    .dataTables_wrapper .dataTables_filter {
-        flex: 1 1 auto;
-        min-width: 0;
-    }
-
-    .dataTables_wrapper .dataTables_filter input {
-        width: 100% !important;
-        max-width: 100%;
-        box-sizing: border-box;
-    }
-
-    /* Table + info + pagination should always be on their own row */
-    .dataTables_wrapper > table,
-    .dataTables_wrapper > .dataTables_info,
-    .dataTables_wrapper > .dataTables_paginate {
-        flex: 0 0 100%;
-        width: 100%;
-    }
-}
-    </style>
-
     <div class="flex flex-col min-h-screen" x-data="sourcesPage"
          x-effect="document.body.classList.toggle('overflow-hidden', EditOpen)"
          @keydown.escape.window="closeEdit()">
@@ -112,26 +33,28 @@
                            value="{{ old('name') }}"
                            placeholder="e.g. LinkedIn, Referral, Company Website…"
                            class="flex-1 bg-gray-800/80 border border-gray-700/80 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-[#92BA56] focus:outline-none">
+                    
+                    <!-- Updated button with pure Tailwind -->
                     <button type="submit"
-                            class="btn btn-sm bg-[#92BA56] border-0 text-gray-950 hover:bg-[#82a74a] whitespace-nowrap">
+                            class="inline-flex items-center justify-center px-4 py-2 text-xs font-bold text-gray-950 bg-[#92BA56] rounded-lg hover:bg-[#82a74a] transition-colors whitespace-nowrap">
                         + Add Source
                     </button>
                 </form>
             </div>
 
             <div class="card bg-gray-900/60 border border-gray-800 shadow-xl p-4 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table id="SourcesTable" class="table w-full text-left">
+                <div class="overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                    <table id="SourcesTable" class="w-full text-left text-sm text-gray-300">
                         <thead class="bg-gray-800/80 text-xs uppercase tracking-wider text-gray-400 border-b border-gray-700/60">
                             <tr>
-                                <th class="py-4 px-6">Name</th>
-                                <th class="py-4 px-6">Created</th>
-                                <th class="py-4 px-6 text-right">Actions</th>
+                                <th class="py-4 px-6 font-semibold">Name</th>
+                                <th class="py-4 px-6 font-semibold">Created</th>
+                                <th class="py-4 px-6 font-semibold text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-800/60">
                             @foreach($Sources as $Source)
-                                <tr>
+                                <tr class="hover:bg-gray-800/40 transition-colors">
                                     <td class="py-4 px-6">
                                         <span class="font-semibold text-white">{{ $Source->name }}</span>
                                     </td>
@@ -141,7 +64,7 @@
                                     <td class="py-4 px-6 whitespace-nowrap text-right">
                                         <div class="inline-flex items-center gap-2">
                                             <button type="button"
-                                                    class="js-edit-source btn btn-sm btn-outline border-[#92BA56]/40 text-[#92BA56] hover:bg-[#92BA56] hover:text-gray-950"
+                                                    class="js-edit-source inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#92BA56] bg-transparent border border-[#92BA56]/40 rounded-lg hover:bg-[#92BA56] hover:text-gray-950 transition-colors"
                                                     data-id="{{ $Source->id }}"
                                                     data-name="{{ $Source->name }}"
                                                     title="Edit source">
@@ -156,7 +79,7 @@
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit"
-                                                        class="btn btn-sm btn-outline border-rose-500/40 text-rose-400 hover:bg-rose-500 hover:text-gray-950"
+                                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-rose-400 bg-transparent border border-rose-500/40 rounded-lg hover:bg-rose-500 hover:text-gray-950 transition-colors"
                                                         title="Delete source">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -175,7 +98,7 @@
 
         </main>
 
-        <!-- Alpine Edit Modal (proven pattern from applications page) -->
+        <!-- Alpine Edit Modal -->
         <div x-show="EditOpen" x-cloak
              class="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
             <div x-show="EditOpen" x-transition.opacity @click="closeEdit()"
@@ -189,7 +112,7 @@
                         <h3 class="text-lg font-bold text-white">Edit Source</h3>
                         <p class="text-xs text-gray-400 mt-0.5">Update the name of this source.</p>
                     </div>
-                    <button type="button" @click="closeEdit()" class="btn btn-text btn-circle btn-sm text-gray-400 hover:text-white">&times;</button>
+                    <button type="button" @click="closeEdit()" class="text-gray-400 hover:text-white transition-colors text-xl leading-none">&times;</button>
                 </div>
 
                 <form :action="'/application-sources/' + EditId" method="POST" class="pt-4 space-y-4">
@@ -205,11 +128,11 @@
 
                     <div class="flex justify-end gap-2 pt-2">
                         <button type="button" @click="closeEdit()"
-                                class="btn btn-sm btn-outline border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white">
+                                class="px-3 py-1.5 text-xs font-semibold text-gray-300 bg-transparent border border-gray-700 rounded-lg hover:bg-gray-800 hover:text-white transition-colors">
                             Cancel
                         </button>
                         <button type="submit"
-                                class="btn btn-sm bg-[#92BA56] border-0 text-gray-950 hover:bg-[#82a74a]">
+                                class="px-3 py-1.5 text-xs font-bold text-gray-950 bg-[#92BA56] rounded-lg hover:bg-[#82a74a] transition-colors">
                             Save Changes
                         </button>
                     </div>
@@ -220,6 +143,7 @@
 
     </div>
 
+    <!-- Vendor Scripts -->
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
@@ -254,23 +178,36 @@
                     ordering: true,
                     responsive: true,
                     columnDefs: [{ orderable: false, targets: -1 }],
+                    dom: '<"flex flex-col sm:flex-row items-center justify-between gap-4 mb-4"lf>rt<"flex flex-col sm:flex-row items-center justify-between gap-4 mt-4"ip>',
                     language: {
                         search: "_INPUT_",
                         searchPlaceholder: "Search sources...",
                         lengthMenu: "Show _MENU_ entries",
                         emptyTable: "No sources yet. Add one above to get started.",
-                        zeroRecords: "No matching sources found."
+                        zeroRecords: "No matching sources found.",
+                        info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                        paginate: {
+                            previous: "Previous",
+                            next: "Next"
+                        }
+                    },
+                    initComplete: function () {
+                        const wrapper = this.api().table().container();
+                        jQuery(wrapper).find('.dataTables_length select').addClass('bg-gray-800/80 border border-gray-700/80 rounded-lg px-3 py-1.5 text-xs text-gray-200 focus:border-[#92BA56] focus:outline-none');
+                        jQuery(wrapper).find('.dataTables_filter input').addClass('bg-gray-800/80 border border-gray-700/80 rounded-lg px-3 py-1.5 text-xs text-gray-200 placeholder-gray-500 focus:border-[#92BA56] focus:outline-none ml-2');
+                        jQuery(wrapper).find('.dataTables_info').addClass('text-xs text-gray-400');
+                        jQuery(wrapper).find('.dataTables_paginate').addClass('flex items-center gap-1');
+                        jQuery(wrapper).find('.paginate_button').addClass('px-2.5 py-1 text-xs text-gray-300 rounded-md hover:bg-gray-800 hover:text-white transition-colors cursor-pointer');
+                        jQuery(wrapper).find('.paginate_button.current').addClass('bg-[#92BA56] text-gray-950 font-bold hover:bg-[#82a74a]');
                     }
                 });
             }
 
-            // Delegated: survives every DataTables redraw.
             document.addEventListener('click', function (e) {
                 var btn = e.target.closest && e.target.closest('.js-edit-source');
                 if (!btn) return;
                 e.preventDefault();
 
-                // Reach the Alpine component root (the div with x-data="sourcesPage").
                 var root = btn.closest('[x-data]');
                 if (!root || !window.Alpine) return;
 
