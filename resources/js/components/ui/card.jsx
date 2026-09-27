@@ -10,10 +10,11 @@ function Card({
     <div
       data-slot="card"
       data-size={size}
-className={cn(
-  "group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-xl bg-card py-(--card-spacing) text-sm text-card-foreground shadow-xs ring-1 ring-foreground/10 outline-none focus-visible:ring-0 focus-visible:ring-transparent ...",
-  className
-)}
+      className={cn(
+        "group/card flex flex-col gap-6 overflow-hidden rounded-xl border border-border bg-card py-6 text-sm text-card-foreground shadow-sm",
+        size === "sm" && "gap-4 py-4",
+        className
+      )}
       {...props}
     />
   )
@@ -27,7 +28,7 @@ function CardHeader({
     <div
       data-slot="card-header"
       className={cn(
-        "group/card-header @container/card-header grid auto-rows-min items-start gap-1 rounded-t-xl px-(--card-spacing) has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto] [.border-b]:pb-(--card-spacing)",
+        "group/card-header @container/card-header grid auto-rows-min items-start gap-1.5 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto] [.border-b]:pb-6 group-data-[size=sm]/card:px-4 group-data-[size=sm]/card:[.border-b]:pb-4",
         className
       )}
       {...props}
@@ -43,7 +44,7 @@ function CardTitle({
     <div
       data-slot="card-title"
       className={cn(
-        "font-heading text-base leading-normal font-medium group-data-[size=sm]/card:text-sm",
+        "font-heading text-base leading-none font-semibold tracking-tight group-data-[size=sm]/card:text-sm",
         className
       )}
       {...props}
@@ -87,7 +88,10 @@ function CardContent({
   return (
     <div
       data-slot="card-content"
-      className={cn("flex flex-col gap-3 px-(--card-spacing)", className)}
+      className={cn(
+        "px-6 group-data-[size=sm]/card:px-4",
+        className
+      )}
       {...props}
     />
   )
@@ -101,7 +105,7 @@ function CardFooter({
     <div
       data-slot="card-footer"
       className={cn(
-        "flex items-center rounded-b-xl px-(--card-spacing) [.border-t]:pt-(--card-spacing)",
+        "flex items-center px-6 [.border-t]:pt-6 group-data-[size=sm]/card:px-4 group-data-[size=sm]/card:[.border-t]:pt-4",
         className
       )}
       {...props}

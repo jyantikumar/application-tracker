@@ -3,13 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\JobApplication;
-use App\Models\ApplicationSource;
 use App\Models\ApplicationStatus;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\DB;
 
 class JobApplicationController extends Controller
 {
@@ -75,13 +73,9 @@ class JobApplicationController extends Controller
         ]);
     }
 
-    public function create(): Response
+    public function create(): RedirectResponse
     {
-        $userId = auth()->id();
-        return Inertia::render('JobApplications/Create', [
-            'sources'  => ApplicationSource::where('user_id', $userId)->get(),
-            'statuses' => ApplicationStatus::where('user_id', $userId)->get(),
-        ]);
+        return redirect()->route('job-applications.applications');
     }
 
     public function store(Request $request): RedirectResponse
@@ -95,8 +89,10 @@ class JobApplicationController extends Controller
             'status'         => 'required|string|max:255',
             'currency'       => 'nullable|string|max:10',
             'salary'         => 'nullable|numeric',
+            'salary_min'     => 'nullable|numeric',
+            'salary_max'     => 'nullable|numeric',
             'pay_rate_type'  => 'nullable|string|max:50',
-            'hours_per_week' => 'nullable|integer',
+            'hours_per_week' => 'nullable|numeric',
             'description'    => 'nullable|string',
             'pros'           => 'nullable|string',
             'cons'           => 'nullable|string',
@@ -106,17 +102,12 @@ class JobApplicationController extends Controller
         $validated['user_id'] = auth()->id();
         JobApplication::create($validated);
 
-        return redirect()->route('job-applications.applications')->with('success', 'Application created successfully.');
+        return redirect()->back()->with('success', 'Application created successfully.');
     }
 
-    public function edit(JobApplication $jobApplication): Response
+    public function edit(JobApplication $jobApplication): RedirectResponse
     {
-        $userId = auth()->id();
-        return Inertia::render('JobApplications/Edit', [
-            'jobApplication' => $jobApplication->load('interviews'),
-            'sources'        => ApplicationSource::where('user_id', $userId)->get(),
-            'statuses'       => ApplicationStatus::where('user_id', $userId)->get(),
-        ]);
+        return redirect()->route('job-applications.applications');
     }
 
     public function update(Request $request, JobApplication $jobApplication): RedirectResponse
@@ -130,8 +121,10 @@ class JobApplicationController extends Controller
             'status'         => 'required|string|max:255',
             'currency'       => 'nullable|string|max:10',
             'salary'         => 'nullable|numeric',
+            'salary_min'     => 'nullable|numeric',
+            'salary_max'     => 'nullable|numeric',
             'pay_rate_type'  => 'nullable|string|max:50',
-            'hours_per_week' => 'nullable|integer',
+            'hours_per_week' => 'nullable|numeric',
             'description'    => 'nullable|string',
             'pros'           => 'nullable|string',
             'cons'           => 'nullable|string',
@@ -140,12 +133,12 @@ class JobApplicationController extends Controller
 
         $jobApplication->update($validated);
 
-        return redirect()->route('job-applications.applications')->with('success', 'Application updated successfully.');
+        return redirect()->back()->with('success', 'Application updated successfully.');
     }
 
     public function destroy(JobApplication $jobApplication): RedirectResponse
     {
         $jobApplication->delete();
-        return redirect()->route('job-applications.applications')->with('success', 'Application deleted successfully.');
+        return redirect()->back()->with('success', 'Application deleted successfully.');
     }
 }

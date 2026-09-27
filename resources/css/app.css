@@ -34,6 +34,7 @@
     --border: oklch(0.88 0.02 128);
     --input: oklch(0.88 0.02 128);
     --ring: oklch(0.62 0.13 128);
+    --sidebar-ring: oklch(0.62 0.13 128);
     --chart-1: oklch(0.62 0.13 128);
     --chart-2: oklch(0.7 0.12 85);
     --chart-3: oklch(0.62 0.08 200);
@@ -113,13 +114,5 @@
   h1, h2, h3, .font-heading {
     font-family: var(--font-heading);
     letter-spacing: -0.02em;
-  }
-}
-
-@layer utilities {
-  .dashboard-surface {
-    @apply rounded-2xl border border-border bg-card shadow-sm backdrop-blur-sm;
-    border-color: color-mix(in oklab, var(--border) 70%, transparent);
-    background-color: color-mix(in oklab, var(--card) 80%, transparent);
   }
 }

@@ -1,6 +1,14 @@
 import { Link } from "@inertiajs/react"
+import { useApplicationModal } from "@/components/application-modal-provider"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import {
   BriefcaseIcon,
   CircleCheckIcon,
@@ -14,6 +22,7 @@ export function DashboardHero({
   CurrentlyInterviewing = 0,
   HiredCount = 0,
 }) {
+  const { openCreate } = useApplicationModal()
   const metrics = [
     {
       label: "Total logged",
@@ -33,63 +42,56 @@ export function DashboardHero({
   ]
 
   return (
-    <section className="relative overflow-hidden px-4 lg:px-6">
-      <div className="dashboard-surface relative overflow-hidden p-6 sm:p-8">
+    <section className="px-4 lg:px-6">
+      <Card className="relative overflow-hidden">
         <div
           aria-hidden
-          className="pointer-events-none absolute -right-16 -top-20 size-64 rounded-full bg-primary/15 blur-3xl"
+          className="pointer-events-none absolute -top-20 -right-16 size-64 rounded-full bg-primary/10 blur-3xl"
         />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -bottom-24 left-1/3 size-56 rounded-full bg-chart-2/10 blur-3xl"
-        />
-
-        <div className="relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-xl space-y-3">
-            <Badge variant="secondary" className="gap-1.5 rounded-lg px-2.5 py-1">
-              <SparklesIcon className="size-3.5" />
-              Pipeline overview
-            </Badge>
-            <h2 className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl">
-              Your job search at a glance
-            </h2>
-            <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
-              Track applications, interview momentum, and outcomes in one place —
-              ready for your Laravel API props.
-            </p>
-            <div className="flex flex-wrap gap-2 pt-1">
-              <Button asChild className="rounded-lg shadow-sm shadow-primary/20">
-                <Link href={route("job-applications.create")}>
+        <CardHeader className="relative gap-3">
+          <Badge variant="secondary" className="w-fit gap-1.5 rounded-lg px-2.5 py-1">
+            <SparklesIcon className="size-3.5" />
+            Pipeline overview
+          </Badge>
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-xl space-y-2">
+              <CardTitle className="text-3xl sm:text-4xl">
+                Your job search at a glance
+              </CardTitle>
+              <CardDescription className="text-sm leading-relaxed sm:text-base">
+                Track applications, interview momentum, and outcomes in one place.
+              </CardDescription>
+              <div className="flex flex-wrap gap-2 pt-2">
+                <Button onClick={openCreate}>
                   <PlusIcon />
                   Log application
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="rounded-lg">
-                <Link href={route("job-applications.applications")}>
-                  View all applications
-                </Link>
-              </Button>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link href={route("job-applications.applications")}>
+                    View all applications
+                  </Link>
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              {metrics.map((metric) => (
+                <Card key={metric.label} size="sm" className="min-w-[5.5rem] shadow-none sm:min-w-[7rem]">
+                  <CardContent className="pt-0">
+                    <metric.icon className="mb-2 size-4 text-primary" />
+                    <p className="font-heading text-2xl font-semibold tabular-nums tracking-tight">
+                      {metric.value}
+                    </p>
+                    <p className="mt-0.5 text-[11px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
+                      {metric.label}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
-
-          <div className="grid grid-cols-3 gap-3 sm:gap-4">
-            {metrics.map((metric) => (
-              <div
-                key={metric.label}
-                className="min-w-[5.5rem] rounded-xl border border-border/70 bg-background/60 px-3 py-3 backdrop-blur-sm sm:min-w-[7rem] sm:px-4"
-              >
-                <metric.icon className="mb-2 size-4 text-primary" />
-                <p className="font-heading text-2xl font-semibold tabular-nums tracking-tight">
-                  {metric.value}
-                </p>
-                <p className="mt-0.5 text-[11px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
-                  {metric.label}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+        </CardHeader>
+      </Card>
     </section>
   )
 }

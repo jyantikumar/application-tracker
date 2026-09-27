@@ -1,6 +1,3 @@
-import { Link } from "@inertiajs/react"
-import { ModeToggle } from "@/components/mode-toggle"
-import { Button } from "@/components/ui/button"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -9,15 +6,14 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
+import { ModeToggle } from "@/components/mode-toggle"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import { PlusIcon } from "lucide-react"
+import { Link } from "@inertiajs/react"
 import { Fragment } from "react"
 
 export function SiteHeader({ title = "Overview", breadcrumbs }) {
-  const crumbs = breadcrumbs?.length
-    ? breadcrumbs
-    : [{ label: title }]
+  const crumbs = breadcrumbs?.length ? breadcrumbs : [{ label: title }]
 
   return (
     <header className="sticky top-0 z-20 flex h-[var(--header-height)] shrink-0 items-center gap-2 border-b border-border/60 bg-background/85 backdrop-blur-md supports-[backdrop-filter]:bg-background/70">
@@ -57,16 +53,6 @@ export function SiteHeader({ title = "Overview", breadcrumbs }) {
         </Breadcrumb>
         <div className="ml-auto flex shrink-0 items-center gap-2">
           <ModeToggle />
-          <Button
-            asChild
-            size="sm"
-            className="hidden rounded-lg shadow-sm shadow-primary/15 sm:inline-flex"
-          >
-            <Link href={route("job-applications.create")}>
-              <PlusIcon />
-              Log Application
-            </Link>
-          </Button>
         </div>
       </div>
     </header>

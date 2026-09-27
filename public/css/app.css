@@ -4174,12 +4174,12 @@ select.is-valid + .advance-select-toggle:focus, select.is-valid + .advance-selec
   --tw-border-opacity: 1;
   border-color: rgb(146 186 86 / var(--tw-border-opacity, 1));
 }
-
+/*
 .focus\:border-blue-300:focus {
   --tw-border-opacity: 1;
   border-color: rgb(147 197 253 / var(--tw-border-opacity, 1));
 }
-
+*/
 .focus\:border-gray-300:focus {
   --tw-border-opacity: 1;
   border-color: rgb(209 213 219 / var(--tw-border-opacity, 1));
@@ -4579,6 +4579,7 @@ select.is-valid + .advance-select-toggle:focus, select.is-valid + .advance-selec
     --tw-text-opacity: 1;
     color: rgb(209 213 219 / var(--tw-text-opacity, 1));
   }
+/*
 
   .dark\:focus\:border-blue-700:focus {
     --tw-border-opacity: 1;
@@ -4589,7 +4590,7 @@ select.is-valid + .advance-select-toggle:focus, select.is-valid + .advance-selec
     --tw-border-opacity: 1;
     border-color: rgb(30 64 175 / var(--tw-border-opacity, 1));
   }
-
+*/
   .dark\:active\:bg-gray-700:active {
     --tw-bg-opacity: 1;
     background-color: rgb(55 65 81 / var(--tw-bg-opacity, 1));

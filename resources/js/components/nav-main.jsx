@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button"
+import { useApplicationModal } from "@/components/application-modal-provider"
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -10,8 +11,9 @@ import {
 import { Link } from "@inertiajs/react"
 import { CirclePlusIcon, UploadIcon } from "lucide-react"
 
-export function NavMain({ items = [], onImport, createUrl }) {
+export function NavMain({ items = [], onImport }) {
   const { isMobile, setOpenMobile } = useSidebar()
+  const { openCreate } = useApplicationModal()
 
   const closeMobile = () => {
     if (isMobile) setOpenMobile(false)
@@ -23,14 +25,15 @@ export function NavMain({ items = [], onImport, createUrl }) {
         <SidebarMenu>
           <SidebarMenuItem className="flex items-center gap-2">
             <SidebarMenuButton
-              asChild
               tooltip="Log Application"
               className="min-w-8 bg-primary text-primary-foreground duration-200 ease-linear hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground"
+              onClick={() => {
+                closeMobile()
+                openCreate()
+              }}
             >
-              <Link href={createUrl} onClick={closeMobile}>
-                <CirclePlusIcon />
-                <span>Log Application</span>
-              </Link>
+              <CirclePlusIcon />
+              <span>Log Application</span>
             </SidebarMenuButton>
             <Button
               size="icon"

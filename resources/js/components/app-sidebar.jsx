@@ -96,7 +96,6 @@ export function AppSidebar({ active = "dashboard", onImport, ...props }) {
         <NavMain
           items={navMain}
           onImport={onImport}
-          createUrl={route("job-applications.create")}
         />
         <NavSecondary items={navSecondary} className="mt-auto" />
       </SidebarContent>

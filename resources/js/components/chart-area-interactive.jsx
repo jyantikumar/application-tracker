@@ -3,6 +3,14 @@ import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
@@ -66,115 +74,114 @@ export function ChartAreaInteractive({ ApplicationsByDate = {} }) {
   )
 
   return (
-    <div className="dashboard-surface flex h-full flex-col p-5 sm:p-6">
-      <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h3 className="font-heading text-lg font-semibold tracking-tight">
-            Activity
-          </h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            <span className="font-medium text-foreground tabular-nums">{total}</span>
-            {" "}logged
-            {peak > 0 && (
-              <>
-                {" · "}peak{" "}
-                <span className="font-medium text-foreground tabular-nums">{peak}</span>
-                /day
-              </>
-            )}
-          </p>
-        </div>
+    <Card className="flex h-full flex-col">
+      <CardHeader>
+        <CardTitle>Activity</CardTitle>
+        <CardDescription>
+          <span className="font-medium text-foreground tabular-nums">{total}</span>
+          {" "}logged
+          {peak > 0 && (
+            <>
+              {" · "}peak{" "}
+              <span className="font-medium text-foreground tabular-nums">{peak}</span>
+              /day
+            </>
+          )}
+        </CardDescription>
+        <CardAction>
+          <ToggleGroup
+            type="single"
+            value={timeRange}
+            onValueChange={(value) => value && setTimeRange(value)}
+            variant="outline"
+            className="hidden sm:flex"
+          >
+            <ToggleGroupItem value="90d" className="px-3 text-xs">
+              90d
+            </ToggleGroupItem>
+            <ToggleGroupItem value="30d" className="px-3 text-xs">
+              30d
+            </ToggleGroupItem>
+            <ToggleGroupItem value="7d" className="px-3 text-xs">
+              7d
+            </ToggleGroupItem>
+          </ToggleGroup>
 
-        <ToggleGroup
-          type="single"
-          value={timeRange}
-          onValueChange={(value) => value && setTimeRange(value)}
-          variant="outline"
-          className="hidden sm:flex"
-        >
-          <ToggleGroupItem value="90d" className="px-3 text-xs">
-            90d
-          </ToggleGroupItem>
-          <ToggleGroupItem value="30d" className="px-3 text-xs">
-            30d
-          </ToggleGroupItem>
-          <ToggleGroupItem value="7d" className="px-3 text-xs">
-            7d
-          </ToggleGroupItem>
-        </ToggleGroup>
+          <Select value={timeRange} onValueChange={setTimeRange}>
+            <SelectTrigger className="w-[7.5rem] sm:hidden" size="sm" aria-label="Time range">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="90d">Last 90 days</SelectItem>
+              <SelectItem value="30d">Last 30 days</SelectItem>
+              <SelectItem value="7d">Last 7 days</SelectItem>
+            </SelectContent>
+          </Select>
+        </CardAction>
+      </CardHeader>
 
-        <Select value={timeRange} onValueChange={setTimeRange}>
-          <SelectTrigger className="w-[7.5rem] sm:hidden" size="sm" aria-label="Time range">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="90d">Last 90 days</SelectItem>
-            <SelectItem value="30d">Last 30 days</SelectItem>
-            <SelectItem value="7d">Last 7 days</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <ChartContainer config={chartConfig} className="aspect-auto h-[260px] w-full flex-1">
-        {filteredData.length === 0 ? (
-          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-            No activity in this range yet.
-          </div>
-        ) : (
-          <AreaChart data={filteredData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
-            <defs>
-              <linearGradient id="fillApplications" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--color-applications)" stopOpacity={0.35} />
-                <stop offset="100%" stopColor="var(--color-applications)" stopOpacity={0.02} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid vertical={false} strokeDasharray="3 6" className="stroke-border/50" />
-            <XAxis
-              dataKey="date"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={10}
-              minTickGap={28}
-              tick={{ fontSize: 11 }}
-              tickFormatter={(value) =>
-                new Date(value).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                })
-              }
-            />
-            <YAxis
-              allowDecimals={false}
-              tickLine={false}
-              axisLine={false}
-              width={28}
-              tick={{ fontSize: 11 }}
-            />
-            <ChartTooltip
-              cursor={{ stroke: "var(--primary)", strokeOpacity: 0.25 }}
-              content={
-                <ChartTooltipContent
-                  labelFormatter={(value) =>
-                    new Date(value).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })
-                  }
-                  indicator="dot"
-                />
-              }
-            />
-            <Area
-              dataKey="applications"
-              type="monotone"
-              fill="url(#fillApplications)"
-              stroke="var(--color-applications)"
-              strokeWidth={2.25}
-            />
-          </AreaChart>
-        )}
-      </ChartContainer>
-    </div>
+      <CardContent className="flex-1">
+        <ChartContainer config={chartConfig} className="aspect-auto h-[260px] w-full">
+          {filteredData.length === 0 ? (
+            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+              No activity in this range yet.
+            </div>
+          ) : (
+            <AreaChart data={filteredData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+              <defs>
+                <linearGradient id="fillApplications" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="var(--color-applications)" stopOpacity={0.35} />
+                  <stop offset="100%" stopColor="var(--color-applications)" stopOpacity={0.02} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid vertical={false} strokeDasharray="3 6" className="stroke-border/50" />
+              <XAxis
+                dataKey="date"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={10}
+                minTickGap={28}
+                tick={{ fontSize: 11 }}
+                tickFormatter={(value) =>
+                  new Date(value).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  })
+                }
+              />
+              <YAxis
+                allowDecimals={false}
+                tickLine={false}
+                axisLine={false}
+                width={28}
+                tick={{ fontSize: 11 }}
+              />
+              <ChartTooltip
+                cursor={{ stroke: "var(--primary)", strokeOpacity: 0.25 }}
+                content={
+                  <ChartTooltipContent
+                    labelFormatter={(value) =>
+                      new Date(value).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })
+                    }
+                    indicator="dot"
+                  />
+                }
+              />
+              <Area
+                dataKey="applications"
+                type="monotone"
+                fill="url(#fillApplications)"
+                stroke="var(--color-applications)"
+                strokeWidth={2.25}
+              />
+            </AreaChart>
+          )}
+        </ChartContainer>
+      </CardContent>
+    </Card>
   )
 }

@@ -1,6 +1,17 @@
 import React, { useMemo, useState } from "react"
-import { Head, Link, router, useForm } from "@inertiajs/react"
+import { Head, router, useForm } from "@inertiajs/react"
 import AppLayout from "@/layouts/AppLayout"
+import { useApplicationModal } from "@/components/application-modal-provider"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -64,12 +75,14 @@ export default function Applications({
   JobApplications = [],
   CustomStatuses = [],
 }) {
+  const { openCreate, openEdit } = useApplicationModal()
   const [searchTerm, setSearchTerm] = useState("")
   const [jobTypeFilter, setJobTypeFilter] = useState("ALL")
   const [statusFilter, setStatusFilter] = useState("ALL")
   const [selectedApp, setSelectedApp] = useState(null)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("general")
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
   const [columnVisibility, setColumnVisibility] = useState({
     companyPosition: true,
     workSetup: true,
@@ -147,11 +160,18 @@ export default function Applications({
 
   const handleDeleteApplication = () => {
     if (!selectedApp) return
-    if (confirm("Delete this application record?")) {
-      router.delete(route("job-applications.destroy", selectedApp.id), {
-        onSuccess: () => setIsDrawerOpen(false),
-      })
-    }
+    setConfirmDeleteOpen(true)
+  }
+
+  const confirmDelete = () => {
+    if (!selectedApp) return
+    router.delete(route("job-applications.destroy", selectedApp.id), {
+      onSuccess: () => {
+        setConfirmDeleteOpen(false)
+        setIsDrawerOpen(false)
+        setSelectedApp(null)
+      },
+    })
   }
 
   const visibleColumnCount = Object.values(columnVisibility).filter(Boolean).length
@@ -178,6 +198,9 @@ export default function Applications({
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <Button size="sm" onClick={openCreate}>
+              Log application
+            </Button>
             <div className="relative w-full sm:w-56">
               <SearchIcon className="pointer-events-none absolute top-2.5 left-3 size-4 text-muted-foreground" />
               <Input
@@ -192,7 +215,7 @@ export default function Applications({
               <SelectTrigger className="w-[150px]">
                 <SelectValue placeholder="Work setup" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper">
                 <SelectItem value="ALL">All work setups</SelectItem>
                 {workSetups.map((setup) => (
                   <SelectItem key={setup} value={setup}>
@@ -206,7 +229,7 @@ export default function Applications({
               <SelectTrigger className="w-[150px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper">
                 <SelectItem value="ALL">All statuses</SelectItem>
                 {statusOptions.map((status) => (
                   <SelectItem key={status} value={status}>
@@ -253,7 +276,7 @@ export default function Applications({
           </div>
         </div>
 
-        <Card className="overflow-hidden border-border/60 bg-card/80 p-0 shadow-none">
+        <Card className="gap-0 overflow-hidden py-0">
           <Table>
             <TableHeader>
               <TableRow>
@@ -541,10 +564,10 @@ export default function Applications({
                               interviewForm.setData("interview_type", v)
                             }
                           >
-                            <SelectTrigger>
+                            <SelectTrigger className="w-full">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent position="popper">
                               <SelectItem value="HR Screening">HR Screening</SelectItem>
                               <SelectItem value="Technical Assessment">
                                 Technical Assessment
@@ -577,10 +600,10 @@ export default function Applications({
                               interviewForm.setData("status", v)
                             }
                           >
-                            <SelectTrigger>
+                            <SelectTrigger className="w-full">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent position="popper">
                               <SelectItem value="Scheduled">Scheduled</SelectItem>
                               <SelectItem value="Completed">Completed</SelectItem>
                               <SelectItem value="Cancelled">Cancelled</SelectItem>
@@ -619,17 +642,45 @@ export default function Applications({
                 >
                   <Trash2Icon />
                 </Button>
-                <Button asChild className="flex-1">
-                  <Link href={route("job-applications.edit", selectedApp.id)}>
-                    <PencilIcon />
-                    Edit application
-                  </Link>
+                <Button
+                  className="flex-1"
+                  onClick={() => {
+                    openEdit(selectedApp)
+                    setIsDrawerOpen(false)
+                  }}
+                >
+                  <PencilIcon />
+                  Edit application
                 </Button>
               </div>
             </div>
           )}
         </SheetContent>
       </Sheet>
+
+      <AlertDialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this application?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes{" "}
+              <span className="font-medium text-foreground">
+                {selectedApp?.company_name}
+              </span>{" "}
+              and its interview history. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-white hover:bg-destructive/90"
+              onClick={confirmDelete}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   )
 }

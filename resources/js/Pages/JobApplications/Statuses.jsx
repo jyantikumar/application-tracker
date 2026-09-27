@@ -50,7 +50,7 @@ export default function Statuses({ statuses = [] }) {
       )}
 
       <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
-        <Card className="h-fit border-border/60 bg-card/80 shadow-none">
+        <Card className="h-fit">
           <CardHeader>
             <CardTitle className="font-heading text-base">Add status</CardTitle>
           </CardHeader>
@@ -82,7 +82,7 @@ export default function Statuses({ statuses = [] }) {
           </CardContent>
         </Card>
 
-        <Card className="overflow-hidden border-border/60 bg-card/80 p-0 shadow-none">
+        <Card className="gap-0 overflow-hidden py-0">
           <Table>
             <TableHeader>
               <TableRow>

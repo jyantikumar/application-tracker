@@ -1,5 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { cn } from "cn"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 
 function BreakdownList({ title, data = {}, emptyLabel = "No data yet" }) {
   const rows = Object.entries(data)
@@ -11,11 +16,9 @@ function BreakdownList({ title, data = {}, emptyLabel = "No data yet" }) {
   const max = Math.max(...rows.map((row) => row.count), 1)
 
   return (
-    <Card className="border-border/60 bg-card/80 shadow-none">
-      <CardHeader className="pb-3">
-        <CardTitle className="font-heading text-base font-semibold tracking-tight">
-          {title}
-        </CardTitle>
+    <Card size="sm">
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {rows.length === 0 ? (
@@ -33,7 +36,7 @@ function BreakdownList({ title, data = {}, emptyLabel = "No data yet" }) {
               </div>
               <div className="h-1.5 overflow-hidden rounded-full bg-muted">
                 <div
-                  className={cn("h-full rounded-full bg-primary transition-all")}
+                  className="h-full rounded-full bg-primary transition-all"
                   style={{ width: `${(row.count / max) * 100}%` }}
                 />
               </div>
@@ -59,28 +62,30 @@ export function DashboardBreakdownCharts({
 
   return (
     <div className="flex h-full flex-col gap-4">
-      <div className="dashboard-surface flex items-center justify-between gap-4 p-5">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-            Interview conversion
-          </p>
-          <p className="mt-1 font-heading text-3xl font-semibold tabular-nums tracking-tight">
-            {interviewRate}%
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {InterviewsDone} of {TotalApplications} reached interview
-          </p>
-        </div>
-        <div
-          className="relative size-16 shrink-0 rounded-full"
-          style={{
-            background: `conic-gradient(var(--primary) ${interviewRate}%, color-mix(in oklab, var(--muted) 80%, transparent) 0)`,
-          }}
-          aria-hidden
-        >
-          <div className="absolute inset-2 rounded-full bg-card" />
-        </div>
-      </div>
+      <Card>
+        <CardContent className="flex items-center justify-between gap-4 pt-0">
+          <div>
+            <p className="text-[11px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
+              Interview conversion
+            </p>
+            <p className="mt-1 font-heading text-3xl font-semibold tracking-tight tabular-nums">
+              {interviewRate}%
+            </p>
+            <CardDescription className="mt-1">
+              {InterviewsDone} of {TotalApplications} reached interview
+            </CardDescription>
+          </div>
+          <div
+            className="relative size-16 shrink-0 rounded-full"
+            style={{
+              background: `conic-gradient(var(--primary) ${interviewRate}%, color-mix(in oklab, var(--muted) 80%, transparent) 0)`,
+            }}
+            aria-hidden
+          >
+            <div className="absolute inset-2 rounded-full bg-card" />
+          </div>
+        </CardContent>
+      </Card>
 
       <BreakdownList title="By source" data={ApplicationsBySource} />
       <BreakdownList title="By work setup" data={ApplicationsByJobType} />

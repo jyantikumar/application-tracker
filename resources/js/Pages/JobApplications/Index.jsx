@@ -23,7 +23,7 @@ export default function Index({
   ApplicationsByLocation = {},
   RecentApplications = [],
 }) {
-  const { flash } = usePage().props
+  const { flash, applicationStatuses = [] } = usePage().props
 
   return (
     <AppLayout
@@ -56,6 +56,7 @@ export default function Index({
         HiredCount={HiredCount}
         RejectedCount={RejectedCount}
         StatusCounts={StatusCounts}
+        CustomStatuses={applicationStatuses}
       />
 
       <section className="grid grid-cols-1 gap-4 px-4 lg:grid-cols-[1.4fr_1fr] lg:px-6">
