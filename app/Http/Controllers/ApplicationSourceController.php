@@ -6,19 +6,23 @@ use App\Models\ApplicationSource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Inertia\Inertia;
 
 class ApplicationSourceController extends Controller
 {
     public function index()
     {
-        $Sources = Auth::user()->sources()->orderBy('name')->get();
-
-        return view('job_applications.sources', compact('Sources'));
+        return Inertia::render('Sources', [
+            'sources' => Auth::user()
+                ->sources()
+                ->orderBy('name')
+                ->get(['id', 'name']),
+        ]);
     }
 
-    public function store(Request $Request)
+    public function store(Request $request)
     {
-        $Validated = $Request->validate([
+        $validated = $request->validate([
             'name' => [
                 'required', 'string', 'max:100',
                 Rule::unique('application_sources', 'name')->where('user_id', Auth::id()),
@@ -27,41 +31,55 @@ class ApplicationSourceController extends Controller
             'name.unique' => 'You already have a source with that name.',
         ]);
 
-        Auth::user()->sources()->create($Validated);
+        $source = Auth::user()->sources()->create($validated);
 
-        return redirect()->route('sources.index')->with('success', 'Source added successfully.');
-    }
-
-    public function update(Request $Request, ApplicationSource $Source)
-    {
-        if ($Source->user_id !== Auth::id()) {
-            abort(403, 'Unauthorized action.');
+        if ($request->wantsJson()) {
+            return response()->json([
+                'id'   => $source->id,
+                'name' => $source->name,
+            ], 201);
         }
 
-        $Validated = $Request->validate([
+        return back()->with('success', 'Source added successfully.');
+    }
+
+    public function update(Request $request, ApplicationSource $source)
+    {
+        abort_if($source->user_id !== Auth::id(), 403, 'Unauthorized action.');
+
+        $validated = $request->validate([
             'name' => [
                 'required', 'string', 'max:100',
                 Rule::unique('application_sources', 'name')
                     ->where('user_id', Auth::id())
-                    ->ignore($Source->id),
+                    ->ignore($source->id),
             ],
         ], [
             'name.unique' => 'You already have a source with that name.',
         ]);
 
-        $Source->update($Validated);
+        $source->update($validated);
 
-        return redirect()->route('sources.index')->with('success', 'Source updated successfully.');
-    }
-
-    public function destroy(ApplicationSource $Source)
-    {
-        if ($Source->user_id !== Auth::id()) {
-            abort(403, 'Unauthorized action.');
+        if ($request->wantsJson()) {
+            return response()->json([
+                'id'   => $source->id,
+                'name' => $source->name,
+            ]);
         }
 
-        $Source->delete();
+        return back()->with('success', 'Source updated successfully.');
+    }
 
-        return redirect()->route('sources.index')->with('success', 'Source deleted.');
+    public function destroy(Request $request, ApplicationSource $source)
+    {
+        abort_if($source->user_id !== Auth::id(), 403, 'Unauthorized action.');
+
+        $source->delete();
+
+        if ($request->wantsJson()) {
+            return response()->json(['deleted' => true]);
+        }
+
+        return back()->with('success', 'Source deleted.');
     }
 }

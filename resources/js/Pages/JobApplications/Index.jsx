@@ -22,7 +22,12 @@ export default function Index({
   ApplicationsByLocation = {},
   RecentApplications = [],
 }) {
-  const { flash, applicationStatuses = [] } = usePage().props
+  const { flash, applicationStatuses } = usePage().props
+
+  // Guard against undefined / null coming from the backend
+  const customStatuses = Array.isArray(applicationStatuses)
+    ? applicationStatuses
+    : []
 
   return (
     <>
@@ -36,12 +41,14 @@ export default function Index({
         </div>
       )}
 
+      {/* Hero: totals + quick actions */}
       <DashboardHero
         TotalApplications={TotalApplications}
         CurrentlyInterviewing={CurrentlyInterviewing}
         HiredCount={HiredCount}
       />
 
+      {/* Pipeline stages: applied / review / waiting / interviewing / hired / rejected + custom */}
       <PipelineStages
         AppliedCount={AppliedCount}
         UnderReviewCount={UnderReviewCount}
@@ -50,9 +57,10 @@ export default function Index({
         HiredCount={HiredCount}
         RejectedCount={RejectedCount}
         StatusCounts={StatusCounts}
-        CustomStatuses={applicationStatuses}
+        CustomStatuses={customStatuses}
       />
 
+      {/* Charts: timeline + breakdowns */}
       <section className="grid grid-cols-1 gap-4 px-4 lg:grid-cols-[1.4fr_1fr] lg:px-6">
         <ChartAreaInteractive ApplicationsByDate={ApplicationsByDate} />
         <DashboardBreakdownCharts
@@ -64,6 +72,7 @@ export default function Index({
         />
       </section>
 
+      {/* Recent applications table */}
       <RecentApplicationsTable RecentApplications={RecentApplications} />
     </>
   )

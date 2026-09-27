@@ -14,7 +14,15 @@ export function useApplicationModal() {
 }
 
 export function ApplicationModalProvider({ children }) {
-  const { applicationSources = [], applicationStatuses = [] } = usePage().props
+  const pageProps = usePage().props
+  const { applicationSources = [], applicationStatuses = [] } = pageProps
+
+  // ============ TEMP DEBUG — REMOVE AFTER FIXING ============
+  console.log("[modal-provider] pageProps keys:", Object.keys(pageProps))
+  console.log("[modal-provider] applicationSources:", applicationSources)
+  console.log("[modal-provider] applicationStatuses:", applicationStatuses)
+  // ==========================================================
+
   const [open, setOpen] = useState(false)
   const [mode, setMode] = useState("create")
   const [application, setApplication] = useState(null)
@@ -36,6 +44,11 @@ export function ApplicationModalProvider({ children }) {
       ]),
     [applicationStatuses]
   )
+
+  // ============ TEMP DEBUG — REMOVE AFTER FIXING ============
+  console.log("[modal-provider] computed sources:", sources)
+  console.log("[modal-provider] computed statuses:", statuses)
+  // ==========================================================
 
   const openCreate = useCallback(() => {
     setMode("create")

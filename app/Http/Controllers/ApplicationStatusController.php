@@ -6,19 +6,23 @@ use App\Models\ApplicationStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Inertia\Inertia;
 
 class ApplicationStatusController extends Controller
 {
     public function index()
     {
-        $Statuses = Auth::user()->statuses()->orderBy('name')->get();
-
-        return view('job_applications.statuses', compact('Statuses'));
+        return Inertia::render('Statuses', [
+            'statuses' => Auth::user()
+                ->statuses()
+                ->orderBy('name')
+                ->get(['id', 'name']),
+        ]);
     }
 
-    public function store(Request $Request)
+    public function store(Request $request)
     {
-        $Validated = $Request->validate([
+        $validated = $request->validate([
             'name' => [
                 'required', 'string', 'max:100',
                 Rule::unique('application_statuses', 'name')->where('user_id', Auth::id()),
@@ -27,41 +31,55 @@ class ApplicationStatusController extends Controller
             'name.unique' => 'You already have a status with that name.',
         ]);
 
-        Auth::user()->statuses()->create($Validated);
+        $status = Auth::user()->statuses()->create($validated);
 
-        return redirect()->route('statuses.index')->with('success', 'Status added successfully.');
-    }
-
-    public function update(Request $Request, ApplicationStatus $Status)
-    {
-        if ($Status->user_id !== Auth::id()) {
-            abort(403, 'Unauthorized action.');
+        if ($request->wantsJson()) {
+            return response()->json([
+                'id'   => $status->id,
+                'name' => $status->name,
+            ], 201);
         }
 
-        $Validated = $Request->validate([
+        return back()->with('success', 'Status added successfully.');
+    }
+
+    public function update(Request $request, ApplicationStatus $status)
+    {
+        abort_if($status->user_id !== Auth::id(), 403, 'Unauthorized action.');
+
+        $validated = $request->validate([
             'name' => [
                 'required', 'string', 'max:100',
                 Rule::unique('application_statuses', 'name')
                     ->where('user_id', Auth::id())
-                    ->ignore($Status->id),
+                    ->ignore($status->id),
             ],
         ], [
             'name.unique' => 'You already have a status with that name.',
         ]);
 
-        $Status->update($Validated);
+        $status->update($validated);
 
-        return redirect()->route('statuses.index')->with('success', 'Status updated successfully.');
-    }
-
-    public function destroy(ApplicationStatus $Status)
-    {
-        if ($Status->user_id !== Auth::id()) {
-            abort(403, 'Unauthorized action.');
+        if ($request->wantsJson()) {
+            return response()->json([
+                'id'   => $status->id,
+                'name' => $status->name,
+            ]);
         }
 
-        $Status->delete();
+        return back()->with('success', 'Status updated successfully.');
+    }
 
-        return redirect()->route('statuses.index')->with('success', 'Status deleted.');
+    public function destroy(Request $request, ApplicationStatus $status)
+    {
+        abort_if($status->user_id !== Auth::id(), 403, 'Unauthorized action.');
+
+        $status->delete();
+
+        if ($request->wantsJson()) {
+            return response()->json(['deleted' => true]);
+        }
+
+        return back()->with('success', 'Status deleted.');
     }
 }

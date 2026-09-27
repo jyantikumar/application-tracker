@@ -13,21 +13,30 @@ class OptionManagementController extends Controller
 {
     public function indexSources(): Response
     {
-        $sources = ApplicationSource::where('user_id', auth()->id())->get();
+        $sources = ApplicationSource::where('user_id', auth()->id())
+            ->orderBy('name')
+            ->get(['id', 'name']);
 
         return Inertia::render('JobApplications/Sources', [
             'sources' => $sources,
         ]);
     }
 
-    public function storeSource(Request $request): RedirectResponse
+    public function storeSource(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
         ]);
 
         $validated['user_id'] = auth()->id();
-        ApplicationSource::create($validated);
+        $source = ApplicationSource::create($validated);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'id'   => $source->id,
+                'name' => $source->name,
+            ], 201);
+        }
 
         return redirect()->back()->with('success', 'Source added successfully.');
     }
@@ -52,14 +61,16 @@ class OptionManagementController extends Controller
 
     public function indexStatuses(): Response
     {
-        $statuses = ApplicationStatus::where('user_id', auth()->id())->get();
+        $statuses = ApplicationStatus::where('user_id', auth()->id())
+            ->orderBy('name')
+            ->get(['id', 'name']);
 
         return Inertia::render('JobApplications/Statuses', [
             'statuses' => $statuses,
         ]);
     }
 
-    public function storeStatus(Request $request): RedirectResponse
+    public function storeStatus(Request $request)
     {
         $validated = $request->validate([
             'name'  => 'required|string|max:255',
@@ -67,7 +78,14 @@ class OptionManagementController extends Controller
         ]);
 
         $validated['user_id'] = auth()->id();
-        ApplicationStatus::create($validated);
+        $status = ApplicationStatus::create($validated);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'id'   => $status->id,
+                'name' => $status->name,
+            ], 201);
+        }
 
         return redirect()->back()->with('success', 'Status added successfully.');
     }

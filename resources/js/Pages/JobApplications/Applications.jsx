@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import { Head, router, useForm } from "@inertiajs/react"
 import { useApplicationModal } from "@/components/application-modal-provider"
 import {
@@ -24,6 +24,15 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 import {
   Select,
   SelectContent,
@@ -61,6 +70,8 @@ import {
   Trash2Icon,
 } from "lucide-react"
 
+import { cn } from "@/lib/utils"
+
 function formatDate(value) {
   if (!value) return "—"
   return new Date(value).toLocaleDateString("en-US", {
@@ -68,6 +79,40 @@ function formatDate(value) {
     day: "numeric",
     year: "numeric",
   })
+}
+
+/**
+ * Build a compact pagination range like [1, "...", 4, 5, 6, "...", 20]
+ */
+function getPageNumbers(current, total) {
+  const delta = 1
+  const range = []
+  const rangeWithDots = []
+  let l
+
+  for (let i = 1; i <= total; i++) {
+    if (
+      i === 1 ||
+      i === total ||
+      (i >= current - delta && i <= current + delta)
+    ) {
+      range.push(i)
+    }
+  }
+
+  for (const i of range) {
+    if (l) {
+      if (i - l === 2) {
+        rangeWithDots.push(l + 1)
+      } else if (i - l !== 1) {
+        rangeWithDots.push("...")
+      }
+    }
+    rangeWithDots.push(i)
+    l = i
+  }
+
+  return rangeWithDots
 }
 
 export default function Applications({
@@ -82,6 +127,11 @@ export default function Applications({
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("general")
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
+
+  // ---- Pagination state ----
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+
   const [columnVisibility, setColumnVisibility] = useState({
     companyPosition: true,
     workSetup: true,
@@ -138,6 +188,19 @@ export default function Applications({
     })
   }, [JobApplications, searchTerm, jobTypeFilter, statusFilter])
 
+  // Reset to page 1 whenever filters change
+  useEffect(() => {
+    setPage(1)
+  }, [searchTerm, jobTypeFilter, statusFilter, pageSize])
+
+  const totalPages = Math.max(1, Math.ceil(filteredApplications.length / pageSize))
+  const currentPage = Math.min(page, totalPages)
+
+  const paginatedApplications = useMemo(() => {
+    const start = (currentPage - 1) * pageSize
+    return filteredApplications.slice(start, start + pageSize)
+  }, [filteredApplications, currentPage, pageSize])
+
   const openDetails = (app) => {
     setSelectedApp(app)
     setActiveTab("general")
@@ -191,7 +254,7 @@ export default function Applications({
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Button size="sm" className="rounded-sm p-4 " onClick={openCreate}>
+            <Button size="sm" className="rounded-sm p-4" onClick={openCreate}>
               Log application
             </Button>
             <div className="relative w-full sm:w-56">
@@ -263,7 +326,10 @@ export default function Applications({
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Badge variant="secondary" className="rounded-lg px-3 py-1.5 tabular-nums">
+            <Badge
+              variant="secondary"
+              className="rounded-lg px-3 py-1.5 tabular-nums"
+            >
               {filteredApplications.length} total
             </Badge>
           </div>
@@ -280,7 +346,9 @@ export default function Applications({
                 {columnVisibility.compensation && (
                   <TableHead>Compensation</TableHead>
                 )}
-                {columnVisibility.dateApplied && <TableHead>Date applied</TableHead>}
+                {columnVisibility.dateApplied && (
+                  <TableHead>Date applied</TableHead>
+                )}
                 {columnVisibility.interviewStatus && (
                   <TableHead>Interview</TableHead>
                 )}
@@ -288,8 +356,8 @@ export default function Applications({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredApplications.length > 0 ? (
-                filteredApplications.map((app) => {
+              {paginatedApplications.length > 0 ? (
+                paginatedApplications.map((app, index) => {
                   const interviews = app.interviews || app.Interviews || []
                   const completed = interviews.filter(
                     (i) => i.status === "Completed"
@@ -302,7 +370,12 @@ export default function Applications({
                     <TableRow
                       key={app.id}
                       onClick={() => openDetails(app)}
-                      className="cursor-pointer"
+                      className={cn(
+                        "cursor-pointer",
+                        index % 2 === 0
+                          ? "bg-background"
+                          : "bg-muted/40 hover:bg-muted/60"
+                      )}
                     >
                       {columnVisibility.companyPosition && (
                         <TableCell>
@@ -376,6 +449,103 @@ export default function Applications({
               )}
             </TableBody>
           </Table>
+
+          {/* Pagination footer */}
+          {filteredApplications.length > 0 && (
+            <div className="flex flex-col items-center justify-between gap-3 border-t border-border/60 px-4 py-3 sm:flex-row">
+              <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                <span>
+                  Showing{" "}
+                  <span className="font-medium text-foreground">
+                    {(currentPage - 1) * pageSize + 1}
+                  </span>
+                  –
+                  <span className="font-medium text-foreground">
+                    {Math.min(currentPage * pageSize, filteredApplications.length)}
+                  </span>{" "}
+                  of{" "}
+                  <span className="font-medium text-foreground">
+                    {filteredApplications.length}
+                  </span>
+                </span>
+
+                <div className="flex items-center gap-1.5">
+                  <span>Rows</span>
+                  <Select
+                    value={String(pageSize)}
+                    onValueChange={(v) => {
+                      setPageSize(Number(v))
+                      setPage(1)
+                    }}
+                  >
+                    <SelectTrigger className="h-7 w-[68px] text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent position="popper">
+                      {[5, 10, 20, 50].map((n) => (
+                        <SelectItem key={n} value={String(n)}>
+                          {n}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <Pagination className="mx-0 w-auto">
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        setPage((p) => Math.max(1, p - 1))
+                      }}
+                      className={
+                        currentPage === 1 ? "pointer-events-none opacity-50" : ""
+                      }
+                    />
+                  </PaginationItem>
+
+                  {getPageNumbers(currentPage, totalPages).map((p, i) =>
+                    p === "..." ? (
+                      <PaginationItem key={`ellipsis-${i}`}>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    ) : (
+                      <PaginationItem key={p}>
+                        <PaginationLink
+                          href="#"
+                          isActive={p === currentPage}
+                          onClick={(e) => {
+                            e.preventDefault()
+                            setPage(p)
+                          }}
+                        >
+                          {p}
+                        </PaginationLink>
+                      </PaginationItem>
+                    )
+                  )}
+
+                  <PaginationItem>
+                    <PaginationNext
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        setPage((p) => Math.min(totalPages, p + 1))
+                      }}
+                      className={
+                        currentPage === totalPages
+                          ? "pointer-events-none opacity-50"
+                          : ""
+                      }
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </Card>
       </div>
 
@@ -524,7 +694,10 @@ export default function Applications({
                               <span className="text-sm font-semibold">
                                 {interview.interview_type}
                               </span>
-                              <Badge variant="outline" className="text-[10px] uppercase">
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] uppercase"
+                              >
                                 {interview.status}
                               </Badge>
                             </div>
@@ -561,7 +734,9 @@ export default function Applications({
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent position="popper">
-                              <SelectItem value="HR Screening">HR Screening</SelectItem>
+                              <SelectItem value="HR Screening">
+                                HR Screening
+                              </SelectItem>
                               <SelectItem value="Technical Assessment">
                                 Technical Assessment
                               </SelectItem>

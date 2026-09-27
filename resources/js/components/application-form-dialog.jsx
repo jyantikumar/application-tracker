@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import { useForm } from "@inertiajs/react"
+import { router, useForm } from "@inertiajs/react"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -123,30 +123,43 @@ export function ApplicationFormDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, isEdit, application?.id])
 
-  const persistOption = async (endpoint, name, onSuccess) => {
-    if (!name.trim()) return
-    setIsAddingOption(true)
-    try {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRF-TOKEN":
-            document
-              .querySelector('meta[name="csrf-token"]')
-              ?.getAttribute("content") || "",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({ name: name.trim() }),
-      })
-      if (!response.ok) throw new Error("Failed")
-      onSuccess(name.trim())
-    } catch {
-      alert("Could not save option. Please try again.")
-    } finally {
-      setIsAddingOption(false)
-    }
+const persistOption = async (endpoint, name, onSuccess) => {
+  const trimmed = name.trim()
+  if (!trimmed) return
+  setIsAddingOption(true)
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-TOKEN":
+          document
+            .querySelector('meta[name="csrf-token"]')
+            ?.getAttribute("content") || "",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ name: trimmed }),
+    })
+    if (!response.ok) throw new Error("Failed")
+    const data = await response.json().catch(() => null)
+    const savedName = data?.name ?? trimmed
+
+    onSuccess(savedName)
+
+    // Refresh the shared Inertia props so the new option persists
+    // in `usePage().props.applicationSources` / `applicationStatuses`
+    // and shows up the next time the dialog opens.
+    router.reload({
+      only: ["applicationSources", "applicationStatuses"],
+      preserveScroll: true,
+      preserveState: true,
+    })
+  } catch {
+    alert("Could not save option. Please try again.")
+  } finally {
+    setIsAddingOption(false)
   }
+}
 
   const submitForm = () => {
     const options = {
