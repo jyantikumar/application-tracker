@@ -7,6 +7,7 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { ThemeProvider } from '@/components/theme-provider';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from '@/components/ui/sonner';
+import { ToastProvider } from '@/components/toast-provider';
 import AppLayout from '@/layouts/AppLayout';
 
 createInertiaApp({
@@ -29,19 +30,19 @@ createInertiaApp({
         return page;
     },
     setup({ el, App, props }) {
-        const root = createRoot(el);
-        root.render(
-            <ThemeProvider
-                attribute="class"
-                defaultTheme="system"
-                enableSystem
-                disableTransitionOnChange
-            >
-                <TooltipProvider>
-                    <App {...props} />
-                    <Toaster />
-                </TooltipProvider>
-            </ThemeProvider>
-        );
-    },
+    const root = createRoot(el);
+    root.render(
+        <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+        >
+            <TooltipProvider>
+                <App {...props} />
+                <Toaster position="top-center" richColors closeButton />
+            </TooltipProvider>
+        </ThemeProvider>
+    );
+},
 });

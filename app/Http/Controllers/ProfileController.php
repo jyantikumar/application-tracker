@@ -31,7 +31,7 @@ class ProfileController extends Controller
 
         $request->user()->save();
 
-        return Redirect::route('profile.edit');
+        return back()->with('success', 'Password updated.');
     }
 
     public function destroy(Request $request): RedirectResponse
@@ -49,6 +49,6 @@ class ProfileController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return Redirect::to('/');
+        return redirect('/')->with('success', 'Your account has been deleted.');
     }
 }

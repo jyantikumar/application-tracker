@@ -24,7 +24,9 @@ class InterviewController extends Controller
             $JobApplication->update(['status' => 'Interviewing']);
         }
 
-        return redirect()->back()->with('success', 'Interview log recorded successfully.');
+         return redirect()
+        ->back()
+        ->with('success', 'Interview logged successfully.');
     }
 
     public function Update(Request $Request, Interview $Interview)

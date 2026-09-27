@@ -40,7 +40,9 @@ class ApplicationSourceController extends Controller
             ], 201);
         }
 
-        return back()->with('success', 'Source added successfully.');
+           return redirect()
+        ->back()
+        ->with('success', 'Source added successfully.');
     }
 
     public function update(Request $request, ApplicationSource $source)
@@ -67,7 +69,9 @@ class ApplicationSourceController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Source updated successfully.');
+         return redirect()
+        ->back()
+        ->with('success', 'Source updated successfully.');
     }
 
     public function destroy(Request $request, ApplicationSource $source)
@@ -80,6 +84,8 @@ class ApplicationSourceController extends Controller
             return response()->json(['deleted' => true]);
         }
 
-        return back()->with('success', 'Source deleted.');
+       return redirect()
+        ->back()
+        ->with('success', 'Source deleted successfully.');
     }
 }

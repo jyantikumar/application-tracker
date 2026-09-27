@@ -2,6 +2,8 @@ import React, { useState } from "react"
 import { AppSidebar } from "@/components/app-sidebar"
 import { ApplicationModalProvider } from "@/components/application-modal-provider"
 import { SiteHeader } from "@/components/site-header"
+import { ToastProvider } from "@/components/toast-provider"
+
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -26,6 +28,9 @@ export default function AppLayout({
 
   return (
     <ApplicationModalProvider>
+      {/* 👇 ToastProvider mounted inside the Inertia tree so usePage() works */}
+      <ToastProvider />
+
       <SidebarProvider
         defaultOpen
         style={{

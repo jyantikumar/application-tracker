@@ -21,20 +21,24 @@ class AuthenticatedSessionController extends Controller
         ]);
     }
 
-    public function store(LoginRequest $request): RedirectResponse
-    {
-        $request->authenticate();
-        $request->session()->regenerate();
+ public function store(LoginRequest $request)
+{
+    $request->authenticate();
+    $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
-    }
+    // 👇 here — successful login
+    return redirect()->intended(route('dashboard', absolute: false))
+        ->with('success', 'Welcome back!');
+}
 
-    public function destroy(Request $request): RedirectResponse
-    {
-        Auth::guard('web')->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
 
-        return redirect()->route('login');
-    }
+public function destroy(Request $request)
+{
+    Auth::guard('web')->logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
+    // 👇 here — logout
+    return redirect('/')->with('success', 'You have been logged out.');
+}
 }

@@ -40,7 +40,7 @@ class ApplicationStatusController extends Controller
             ], 201);
         }
 
-        return back()->with('success', 'Status added successfully.');
+    return redirect()->back()->with('success', 'Status added successfully.');
     }
 
     public function update(Request $request, ApplicationStatus $status)
@@ -67,7 +67,8 @@ class ApplicationStatusController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Status updated successfully.');
+            return redirect()->back()->with('success', 'Status updated successfully.');
+
     }
 
     public function destroy(Request $request, ApplicationStatus $status)
@@ -80,6 +81,6 @@ class ApplicationStatusController extends Controller
             return response()->json(['deleted' => true]);
         }
 
-        return back()->with('success', 'Status deleted.');
+    return redirect()->back()->with('success', 'Status deleted successfully.');
     }
 }
