@@ -1,6 +1,16 @@
 import React, { useEffect, useMemo, useState } from "react"
 import { Head, router, useForm, usePage } from "@inertiajs/react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -75,6 +85,7 @@ function getPageNumbers(current, total) {
 export default function Statuses({ statuses = [] }) {
   const { flash } = usePage().props
   const [editing, setEditing] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)  // 👈 new
   const createForm = useForm({ name: "" })
   const editForm = useForm({ name: "" })
 
@@ -82,7 +93,6 @@ export default function Statuses({ statuses = [] }) {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
 
-  // Reset to page 1 whenever the number of statuses changes
   useEffect(() => {
     setPage(1)
   }, [statuses.length, pageSize])
@@ -98,6 +108,13 @@ export default function Statuses({ statuses = [] }) {
   const openEdit = (status) => {
     setEditing(status)
     editForm.setData("name", status.name)
+  }
+
+  const confirmDelete = () => {
+    if (!deleteTarget) return
+    router.delete(route("application-statuses.destroy", deleteTarget.id), {
+      onSuccess: () => setDeleteTarget(null),
+    })
   }
 
   return (
@@ -189,13 +206,7 @@ export default function Statuses({ statuses = [] }) {
                           variant="ghost"
                           size="icon-sm"
                           className="text-destructive"
-                          onClick={() => {
-                            if (confirm(`Delete "${status.name}"?`)) {
-                              router.delete(
-                                route("application-statuses.destroy", status.id)
-                              )
-                            }
-                          }}
+                          onClick={() => setDeleteTarget(status)}  // 👈 changed
                         >
                           <Trash2Icon />
                         </Button>
@@ -306,6 +317,7 @@ export default function Statuses({ statuses = [] }) {
         </Card>
       </div>
 
+      {/* Rename dialog */}
       <Dialog open={!!editing} onOpenChange={(open) => !open && setEditing(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -341,6 +353,38 @@ export default function Statuses({ statuses = [] }) {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* 👇 Delete confirmation dialog */}
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this status?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes{" "}
+              <span className="font-medium text-foreground">
+                {deleteTarget?.name}
+              </span>
+              . Applications using this status will keep their text but the
+              status will no longer appear in your list.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-white hover:bg-destructive/90"
+              onClick={(e) => {
+                e.preventDefault()
+                confirmDelete()
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }
