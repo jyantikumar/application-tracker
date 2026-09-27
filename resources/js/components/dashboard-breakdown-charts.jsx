@@ -6,7 +6,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-function BreakdownList({ title, data = {}, emptyLabel = "No data yet" }) {
+export function BreakdownList({ title, data = {}, emptyLabel = "No data yet" }) {
   const rows = Object.entries(data)
     .map(([label, count]) => ({ label, count: Number(count) || 0 }))
     .filter((row) => row.label)
@@ -48,10 +48,7 @@ function BreakdownList({ title, data = {}, emptyLabel = "No data yet" }) {
   )
 }
 
-export function DashboardBreakdownCharts({
-  ApplicationsBySource = {},
-  ApplicationsByJobType = {},
-  ApplicationsByLocation = {},
+export function InterviewConversionCard({
   InterviewsDone = 0,
   TotalApplications = 0,
 }) {
@@ -59,34 +56,26 @@ export function DashboardBreakdownCharts({
     TotalApplications > 0
       ? Math.round((InterviewsDone / TotalApplications) * 100)
       : 0
+}
 
+/**
+ * Convenience wrapper that renders all breakdown cards together.
+ * Kept for backwards compatibility — new code should use the individual
+ * exports above and lay them out explicitly.
+ */
+export function DashboardBreakdownCharts({
+  ApplicationsBySource = {},
+  ApplicationsByJobType = {},
+  ApplicationsByLocation = {},
+  InterviewsDone = 0,
+  TotalApplications = 0,
+}) {
   return (
     <div className="flex h-full flex-col gap-4">
-      <Card>
-        <CardContent className="flex items-center justify-between gap-4 pt-0">
-          <div>
-            <p className="text-[11px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
-              Interview conversion
-            </p>
-            <p className="mt-1 font-heading text-3xl font-semibold tracking-tight tabular-nums">
-              {interviewRate}%
-            </p>
-            <CardDescription className="mt-1">
-              {InterviewsDone} of {TotalApplications} reached interview
-            </CardDescription>
-          </div>
-          <div
-            className="relative size-16 shrink-0 rounded-full"
-            style={{
-              background: `conic-gradient(var(--primary) ${interviewRate}%, color-mix(in oklab, var(--muted) 80%, transparent) 0)`,
-            }}
-            aria-hidden
-          >
-            <div className="absolute inset-2 rounded-full bg-card" />
-          </div>
-        </CardContent>
-      </Card>
-
+      <InterviewConversionCard
+        InterviewsDone={InterviewsDone}
+        TotalApplications={TotalApplications}
+      />
       <BreakdownList title="By source" data={ApplicationsBySource} />
       <BreakdownList title="By work setup" data={ApplicationsByJobType} />
       <BreakdownList title="By location" data={ApplicationsByLocation} />

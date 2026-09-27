@@ -2,8 +2,12 @@ import { Head, usePage } from "@inertiajs/react"
 import { DashboardHero } from "@/components/dashboard-hero"
 import { PipelineStages } from "@/components/pipeline-stages"
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"
-import { DashboardBreakdownCharts } from "@/components/dashboard-breakdown-charts"
+import {
+  BreakdownList,
+  InterviewConversionCard,
+} from "@/components/dashboard-breakdown-charts"
 import { RecentApplicationsTable } from "@/components/recent-applications-table"
+import { WorkSetupDonut } from "@/components/work-setup-donut"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export default function Index({
@@ -24,7 +28,6 @@ export default function Index({
 }) {
   const { flash, applicationStatuses } = usePage().props
 
-  // Guard against undefined / null coming from the backend
   const customStatuses = Array.isArray(applicationStatuses)
     ? applicationStatuses
     : []
@@ -41,14 +44,12 @@ export default function Index({
         </div>
       )}
 
-      {/* Hero: totals + quick actions */}
       <DashboardHero
         TotalApplications={TotalApplications}
         CurrentlyInterviewing={CurrentlyInterviewing}
         HiredCount={HiredCount}
       />
 
-      {/* Pipeline stages: applied / review / waiting / interviewing / hired / rejected + custom */}
       <PipelineStages
         AppliedCount={AppliedCount}
         UnderReviewCount={UnderReviewCount}
@@ -60,19 +61,18 @@ export default function Index({
         CustomStatuses={customStatuses}
       />
 
-      {/* Charts: timeline + breakdowns */}
-      <section className="grid grid-cols-1 gap-4 px-4 lg:grid-cols-[1.4fr_1fr] lg:px-6">
-        <ChartAreaInteractive ApplicationsByDate={ApplicationsByDate} />
-        <DashboardBreakdownCharts
-          ApplicationsBySource={ApplicationsBySource}
-          ApplicationsByJobType={ApplicationsByJobType}
-          ApplicationsByLocation={ApplicationsByLocation}
-          InterviewsDone={InterviewsDone}
-          TotalApplications={TotalApplications}
-        />
+      {/* Section 1: Activity + Interview conversion, side by side */}
+      <section className="px-4 lg:px-6">
+  <ChartAreaInteractive ApplicationsByDate={ApplicationsByDate} />
+</section>
+
+      {/* Section 2: Source, Location, Work setup — three equal columns */}
+      <section className="grid grid-cols-1 gap-4 px-4 md:grid-cols-2 lg:grid-cols-3 lg:px-6">
+        <BreakdownList title="By source" data={ApplicationsBySource} />
+        <BreakdownList title="By location" data={ApplicationsByLocation} />
+        <WorkSetupDonut ApplicationsByJobType={ApplicationsByJobType} />
       </section>
 
-      {/* Recent applications table */}
       <RecentApplicationsTable RecentApplications={RecentApplications} />
     </>
   )

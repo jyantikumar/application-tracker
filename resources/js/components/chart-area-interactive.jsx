@@ -74,7 +74,7 @@ export function ChartAreaInteractive({ ApplicationsByDate = {} }) {
   )
 
   return (
-    <Card className="flex h-full flex-col">
+    <Card className="flex flex-col">
       <CardHeader>
         <CardTitle>Activity</CardTitle>
         <CardDescription>
@@ -121,7 +121,7 @@ export function ChartAreaInteractive({ ApplicationsByDate = {} }) {
       </CardHeader>
 
       <CardContent className="flex-1">
-        <ChartContainer config={chartConfig} className="aspect-auto h-[260px] w-full">
+        <ChartContainer config={chartConfig} className="aspect-auto h-[180px] w-full">
           {filteredData.length === 0 ? (
             <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
               No activity in this range yet.
