@@ -30,7 +30,12 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { AlertCircleIcon, PlusIcon } from "lucide-react"
+import {
+  AlertCircleIcon,
+  FileTextIcon,
+  PlusIcon,
+  XIcon,
+} from "lucide-react"
 
 function emptyForm(sources = [], statuses = []) {
   return {
@@ -50,6 +55,8 @@ function emptyForm(sources = [], statuses = []) {
     description: "",
     pros: "",
     cons: "",
+    resume: null,
+    remove_resume: false,
   }
 }
 
@@ -71,6 +78,8 @@ function formFromApplication(app, sources = [], statuses = []) {
     description: app?.description || "",
     pros: app?.pros || "",
     cons: app?.cons || "",
+    resume: null,
+    remove_resume: false,
   }
 }
 
@@ -123,51 +132,51 @@ export function ApplicationFormDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, isEdit, application?.id])
 
-const persistOption = async (endpoint, name, onSuccess) => {
-  const trimmed = name.trim()
-  if (!trimmed) return
-  setIsAddingOption(true)
-  try {
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRF-TOKEN":
-          document
-            .querySelector('meta[name="csrf-token"]')
-            ?.getAttribute("content") || "",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({ name: trimmed }),
-    })
-    if (!response.ok) throw new Error("Failed")
-    const data = await response.json().catch(() => null)
-    const savedName = data?.name ?? trimmed
+  const persistOption = async (endpoint, name, onSuccess) => {
+    const trimmed = name.trim()
+    if (!trimmed) return
+    setIsAddingOption(true)
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-TOKEN":
+            document
+              .querySelector('meta[name="csrf-token"]')
+              ?.getAttribute("content") || "",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ name: trimmed }),
+      })
+      if (!response.ok) throw new Error("Failed")
+      const data = await response.json().catch(() => null)
+      const savedName = data?.name ?? trimmed
 
-    onSuccess(savedName)
+      onSuccess(savedName)
 
-    // Refresh the shared Inertia props so the new option persists
-    // in `usePage().props.applicationSources` / `applicationStatuses`
-    // and shows up the next time the dialog opens.
-    router.reload({
-      only: ["applicationSources", "applicationStatuses"],
-      preserveScroll: true,
-      preserveState: true,
-    })
-  } catch {
-    alert("Could not save option. Please try again.")
-  } finally {
-    setIsAddingOption(false)
+      router.reload({
+        only: ["applicationSources", "applicationStatuses"],
+        preserveScroll: true,
+        preserveState: true,
+      })
+    } catch {
+      alert("Could not save option. Please try again.")
+    } finally {
+      setIsAddingOption(false)
+    }
   }
-}
 
   const submitForm = () => {
     const options = {
       preserveScroll: true,
+      forceFormData: true, // 👈 required so multipart/form-data is used for the file
       onSuccess: () => onOpenChange(false),
     }
     if (isEdit) {
-      form.put(route("job-applications.update", application.id), options)
+      // Laravel doesn't support multipart + PUT natively; use POST with _method spoof
+      form.transform((data) => ({ ...data, _method: "put" }))
+      form.post(route("job-applications.update", application.id), options)
     } else {
       form.post(route("job-applications.store"), options)
     }
@@ -181,6 +190,28 @@ const persistOption = async (endpoint, name, onSuccess) => {
     }
     submitForm()
   }
+
+  const handleResumeChange = (e) => {
+    const file = e.target.files?.[0] ?? null
+    form.setData("resume", file)
+    if (file) {
+      // Clear "remove" intent if a new file is selected
+      form.setData("remove_resume", false)
+    }
+  }
+
+  const clearResumeSelection = () => {
+    form.setData("resume", null)
+  }
+
+  const toggleRemoveExistingResume = () => {
+    form.setData("remove_resume", !form.data.remove_resume)
+  }
+
+  const existingResumeName = application?.resume_original_name
+  const existingResumeUrl = application?.resume_url
+  const hasExistingResume = isEdit && existingResumeName && !form.data.remove_resume
+  const newResumeSelected = form.data.resume instanceof File
 
   return (
     <>
@@ -420,6 +451,88 @@ const persistOption = async (endpoint, name, onSuccess) => {
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* 👇 Resume upload */}
+                <div className="space-y-2 sm:col-span-2">
+                  <Label>Resume (optional)</Label>
+
+                  {/* Existing resume preview (edit mode) */}
+                  {hasExistingResume && !newResumeSelected && (
+                    <div className="flex items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2 text-sm">
+                      <FileTextIcon className="size-4 shrink-0 text-primary" />
+                      <a
+                        href={existingResumeUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="min-w-0 flex-1 truncate font-medium hover:underline"
+                        title={existingResumeName}
+                      >
+                        {existingResumeName}
+                      </a>
+                      <button
+                        type="button"
+                        onClick={toggleRemoveExistingResume}
+                        className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                        title="Remove this resume"
+                      >
+                        <XIcon className="size-4" />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Warning if marked for removal */}
+                  {isEdit && form.data.remove_resume && !newResumeSelected && (
+                    <div className="flex items-center gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                      <XIcon className="size-3.5" />
+                      <span className="flex-1">
+                        Current resume will be removed on save.
+                      </span>
+                      <button
+                        type="button"
+                        className="font-semibold hover:underline"
+                        onClick={() => form.setData("remove_resume", false)}
+                      >
+                        Undo
+                      </button>
+                    </div>
+                  )}
+
+                  {/* New file selected preview */}
+                  {newResumeSelected && (
+                    <div className="flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-sm">
+                      <FileTextIcon className="size-4 shrink-0 text-primary" />
+                      <span className="min-w-0 flex-1 truncate font-medium">
+                        {form.data.resume.name}
+                      </span>
+                      <span className="shrink-0 text-xs text-muted-foreground">
+                        {(form.data.resume.size / 1024).toFixed(0)} KB
+                      </span>
+                      <button
+                        type="button"
+                        onClick={clearResumeSelection}
+                        className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                      >
+                        <XIcon className="size-4" />
+                      </button>
+                    </div>
+                  )}
+
+                  <Input
+                    type="file"
+                    accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                    onChange={handleResumeChange}
+                    className="cursor-pointer file:mr-3 file:cursor-pointer file:rounded file:border-0 file:bg-muted file:px-3 file:py-1 file:text-xs file:font-medium"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    PDF, DOC, DOCX, PNG, JPG — max 10 MB.
+                  </p>
+                  {form.errors.resume && (
+                    <p className="text-xs text-destructive">
+                      {form.errors.resume}
+                    </p>
+                  )}
+                </div>
+
                 <div className="space-y-2 sm:col-span-2">
                   <Label>Job description *</Label>
                   <Textarea
@@ -488,6 +601,7 @@ const persistOption = async (endpoint, name, onSuccess) => {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Add source modal (unchanged) */}
       <Dialog open={isAddSourceOpen} onOpenChange={setIsAddSourceOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -528,6 +642,7 @@ const persistOption = async (endpoint, name, onSuccess) => {
         </DialogContent>
       </Dialog>
 
+      {/* Add status modal (unchanged) */}
       <Dialog open={isAddStatusOpen} onOpenChange={setIsAddStatusOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>

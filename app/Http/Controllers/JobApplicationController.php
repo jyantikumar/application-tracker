@@ -5,12 +5,41 @@ namespace App\Http\Controllers;
 use App\Models\JobApplication;
 use App\Models\ApplicationStatus;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Http\RedirectResponse;
 
 class JobApplicationController extends Controller
 {
+    /**
+     * Shared validation rules for store/update.
+     */
+    protected function rules(): array
+    {
+        return [
+            'company_name'   => 'required|string|max:255',
+            'position'       => 'required|string|max:255',
+            'job_type'       => 'nullable|string|max:255',
+            'city'           => 'nullable|string|max:255',
+            'source'         => 'nullable|string|max:255',
+            'status'         => 'required|string|max:255',
+            'currency'       => 'nullable|string|max:10',
+            'salary'         => 'nullable|numeric',
+            'salary_min'     => 'nullable|numeric',
+            'salary_max'     => 'nullable|numeric',
+            'pay_rate_type'  => 'nullable|string|max:50',
+            'hours_per_week' => 'nullable|numeric',
+            'description'    => 'nullable|string',
+            'pros'           => 'nullable|string',
+            'cons'           => 'nullable|string',
+            'ApplicationURL' => 'nullable|url',
+            // 👇 Resume rules
+            'resume'         => 'nullable|file|mimes:pdf,doc,docx,png,jpg,jpeg|max:10240',
+            'remove_resume'  => 'nullable|boolean',
+        ];
+    }
+
     public function index(): Response
     {
         $userId = auth()->id();
@@ -80,26 +109,19 @@ class JobApplicationController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'company_name'   => 'required|string|max:255',
-            'position'       => 'required|string|max:255',
-            'job_type'       => 'nullable|string|max:255',
-            'city'           => 'nullable|string|max:255',
-            'source'         => 'nullable|string|max:255',
-            'status'         => 'required|string|max:255',
-            'currency'       => 'nullable|string|max:10',
-            'salary'         => 'nullable|numeric',
-            'salary_min'     => 'nullable|numeric',
-            'salary_max'     => 'nullable|numeric',
-            'pay_rate_type'  => 'nullable|string|max:50',
-            'hours_per_week' => 'nullable|numeric',
-            'description'    => 'nullable|string',
-            'pros'           => 'nullable|string',
-            'cons'           => 'nullable|string',
-            'ApplicationURL' => 'nullable|url',
-        ]);
+        $validated = $request->validate($this->rules());
 
+        unset($validated['remove_resume']);
         $validated['user_id'] = auth()->id();
+
+        if ($request->hasFile('resume')) {
+            $file = $request->file('resume');
+            $validated['resume_path'] = $file->store("resumes/{$validated['user_id']}", 'public');
+            $validated['resume_original_name'] = $file->getClientOriginalName();
+        }
+
+        unset($validated['resume']); // don't try to save the UploadedFile instance
+
         JobApplication::create($validated);
 
         return redirect()->back()->with('success', 'Application created successfully.');
@@ -112,24 +134,28 @@ class JobApplicationController extends Controller
 
     public function update(Request $request, JobApplication $jobApplication): RedirectResponse
     {
-        $validated = $request->validate([
-            'company_name'   => 'required|string|max:255',
-            'position'       => 'required|string|max:255',
-            'job_type'       => 'nullable|string|max:255',
-            'city'           => 'nullable|string|max:255',
-            'source'         => 'nullable|string|max:255',
-            'status'         => 'required|string|max:255',
-            'currency'       => 'nullable|string|max:10',
-            'salary'         => 'nullable|numeric',
-            'salary_min'     => 'nullable|numeric',
-            'salary_max'     => 'nullable|numeric',
-            'pay_rate_type'  => 'nullable|string|max:50',
-            'hours_per_week' => 'nullable|numeric',
-            'description'    => 'nullable|string',
-            'pros'           => 'nullable|string',
-            'cons'           => 'nullable|string',
-            'ApplicationURL' => 'nullable|url',
-        ]);
+        abort_if($jobApplication->user_id !== auth()->id(), 403);
+
+        $validated = $request->validate($this->rules());
+
+        // 👇 Handle remove_resume flag
+        if (!empty($validated['remove_resume']) && $jobApplication->resume_path) {
+            Storage::disk('public')->delete($jobApplication->resume_path);
+            $validated['resume_path'] = null;
+            $validated['resume_original_name'] = null;
+        }
+
+        // 👇 Handle replacement
+        if ($request->hasFile('resume')) {
+            if ($jobApplication->resume_path) {
+                Storage::disk('public')->delete($jobApplication->resume_path);
+            }
+            $file = $request->file('resume');
+            $validated['resume_path'] = $file->store("resumes/{$jobApplication->user_id}", 'public');
+            $validated['resume_original_name'] = $file->getClientOriginalName();
+        }
+
+        unset($validated['resume'], $validated['remove_resume']);
 
         $jobApplication->update($validated);
 
@@ -138,7 +164,15 @@ class JobApplicationController extends Controller
 
     public function destroy(JobApplication $jobApplication): RedirectResponse
     {
+        abort_if($jobApplication->user_id !== auth()->id(), 403);
+
+        // 👇 Clean up stored resume file
+        if ($jobApplication->resume_path) {
+            Storage::disk('public')->delete($jobApplication->resume_path);
+        }
+
         $jobApplication->delete();
+
         return redirect()->back()->with('success', 'Application deleted successfully.');
     }
 }

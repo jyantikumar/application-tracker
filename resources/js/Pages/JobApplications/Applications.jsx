@@ -62,7 +62,9 @@ import {
   CheckIcon,
   ChevronRightIcon,
   Columns3Icon,
+  DownloadIcon,
   ExternalLinkIcon,
+  FileTextIcon,
   GlobeIcon,
   MapPinIcon,
   PencilIcon,
@@ -79,6 +81,16 @@ function formatDate(value) {
     day: "numeric",
     year: "numeric",
   })
+}
+
+/**
+ * Determine how to render the resume inline based on its file extension.
+ */
+function getResumeKind(url = "") {
+  const lower = url.toLowerCase().split("?")[0]
+  if (lower.endsWith(".pdf")) return "pdf"
+  if (/\.(png|jpe?g|gif|webp)$/.test(lower)) return "image"
+  return "other"
 }
 
 /**
@@ -382,6 +394,12 @@ export default function Applications({
                           <div className="font-medium">{app.company_name}</div>
                           <div className="mt-0.5 inline-flex items-center gap-1 text-xs font-medium text-primary">
                             {app.position}
+                            {app.resume_path && (
+                              <FileTextIcon
+                                className="size-3 text-muted-foreground"
+                                aria-label="Resume attached"
+                              />
+                            )}
                             <ChevronRightIcon className="size-3 opacity-0 transition-opacity group-hover:opacity-100" />
                           </div>
                         </TableCell>
@@ -552,7 +570,7 @@ export default function Applications({
       <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
         <SheetContent
           side="right"
-          className="flex h-full w-full flex-col overflow-hidden p-0 sm:max-w-[680px] lg:max-w-[760px]"
+          className="flex h-full w-full flex-col overflow-hidden p-0 sm:max-w-[1100px] lg:max-w-[1200px] xl:max-w-[1300px]"
         >
           {selectedApp && (
             <div className="flex h-full flex-col">
@@ -598,6 +616,12 @@ export default function Applications({
                   <TabsList className="bg-transparent">
                     <TabsTrigger value="general">General</TabsTrigger>
                     <TabsTrigger value="description">Job desc.</TabsTrigger>
+                    <TabsTrigger value="resume" className="gap-1.5">
+                      Resume
+                      {selectedApp.resume_path && (
+                        <span className="size-1.5 rounded-full bg-primary" />
+                      )}
+                    </TabsTrigger>
                     <TabsTrigger value="interviews" className="gap-1.5">
                       Interviews
                       <Badge variant="secondary" className="px-1.5 text-[10px]">
@@ -673,6 +697,85 @@ export default function Applications({
                     </p>
                   </TabsContent>
 
+                  <TabsContent value="resume" className="mt-0 space-y-4">
+                    {!selectedApp.resume_path ? (
+                      <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border/60 bg-muted/20 py-14 text-center">
+                        <FileTextIcon className="size-8 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm font-medium">No resume attached</p>
+                          <p className="text-xs text-muted-foreground">
+                            Edit this application to upload the resume you sent.
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border/60 bg-muted/30 p-3">
+                          <FileTextIcon className="size-4 shrink-0 text-primary" />
+                          <span
+                            className="min-w-0 flex-1 truncate text-sm font-medium"
+                            title={selectedApp.resume_original_name}
+                          >
+                            {selectedApp.resume_original_name || "Resume"}
+                          </span>
+                          <Button asChild variant="outline" size="sm">
+                            <a
+                              href={selectedApp.resume_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <ExternalLinkIcon />
+                              Open
+                            </a>
+                          </Button>
+                          <Button asChild variant="outline" size="sm">
+                            <a href={selectedApp.resume_url} download>
+                              <DownloadIcon />
+                              Download
+                            </a>
+                          </Button>
+                        </div>
+
+                        {(() => {
+                          const kind = getResumeKind(selectedApp.resume_url || "")
+                          if (kind === "pdf") {
+                            return (
+                              <div className="overflow-hidden rounded-lg border border-border/60 bg-muted/10">
+                                <iframe
+                                  src={selectedApp.resume_url}
+                                  title="Resume preview"
+                                  className="h-[520px] w-full"
+                                />
+                              </div>
+                            )
+                          }
+                          if (kind === "image") {
+                            return (
+                              <div className="overflow-hidden rounded-lg border border-border/60 bg-muted/10 p-2">
+                                <img
+                                  src={selectedApp.resume_url}
+                                  alt={selectedApp.resume_original_name || "Resume"}
+                                  className="mx-auto max-h-[520px] w-auto rounded"
+                                />
+                              </div>
+                            )
+                          }
+                          return (
+                            <div className="rounded-lg border border-border/60 bg-muted/20 p-6 text-center text-sm text-muted-foreground">
+                              Inline preview isn't available for this file type. Use{" "}
+                              <span className="font-medium text-foreground">Open</span>{" "}
+                              or{" "}
+                              <span className="font-medium text-foreground">
+                                Download
+                              </span>{" "}
+                              above.
+                            </div>
+                          )
+                        })()}
+                      </>
+                    )}
+                  </TabsContent>
+
                   <TabsContent value="interviews" className="mt-0 space-y-6">
                     <div className="space-y-3">
                       <h4 className="text-[11px] font-bold tracking-widest text-muted-foreground uppercase">
@@ -715,6 +818,7 @@ export default function Applications({
                     </div>
 
                     <form
+                      id="interview-form"
                       onSubmit={handleInterviewSubmit}
                       className="space-y-4 border-t border-border/60 pt-4"
                     >
@@ -789,37 +893,56 @@ export default function Applications({
                           />
                         </div>
                       </div>
-                      <Button
-                        type="submit"
-                        disabled={interviewForm.processing}
-                        className="w-full"
-                      >
-                        Save interview
-                      </Button>
                     </form>
                   </TabsContent>
                 </div>
               </Tabs>
 
               <div className="flex shrink-0 items-center justify-between gap-3 border-t border-border/60 bg-background/90 p-4 backdrop-blur">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={handleDeleteApplication}
-                  className="border-destructive/30 text-destructive hover:bg-destructive/10"
-                >
-                  <Trash2Icon />
-                </Button>
-                <Button
-                  className="flex-1"
-                  onClick={() => {
-                    openEdit(selectedApp)
-                    setIsDrawerOpen(false)
-                  }}
-                >
-                  <PencilIcon />
-                  Edit application
-                </Button>
+                {activeTab === "interviews" ? (
+                  <>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        openEdit(selectedApp)
+                        setIsDrawerOpen(false)
+                      }}
+                    >
+                      <PencilIcon />
+                      Edit application
+                    </Button>
+                    <Button
+                      type="submit"
+                      form="interview-form"
+                      disabled={interviewForm.processing}
+                      className="flex-1"
+                    >
+                      Save interview
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={handleDeleteApplication}
+                      className="border-destructive/30 text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2Icon />
+                    </Button>
+                    <Button
+                      className="flex-1"
+                      onClick={() => {
+                        openEdit(selectedApp)
+                        setIsDrawerOpen(false)
+                      }}
+                    >
+                      <PencilIcon />
+                      Edit application
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           )}

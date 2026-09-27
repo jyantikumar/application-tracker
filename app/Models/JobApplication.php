@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 class JobApplication extends Model
 {
@@ -29,6 +30,8 @@ class JobApplication extends Model
         'ApplicationURL',
         'source',
         'status',
+        'resume_path',
+        'resume_original_name',
     ];
 
     protected $casts = [
@@ -38,12 +41,19 @@ class JobApplication extends Model
         'hours_per_week' => 'float',
     ];
 
+    // 👇 Expose these on every JSON serialization to Inertia
+    protected $appends = [
+        'formatted_salary',
+        'calculated_earnings',
+        'has_been_interviewed',
+        'resume_url',
+    ];
+
     public function User(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    // Formatted salary string display helper
     public function getFormattedSalaryAttribute(): string
     {
         if ($this->salary_min && $this->salary_max) {
@@ -53,7 +63,6 @@ class JobApplication extends Model
         return $this->currency . ' ' . number_format($this->salary ?: 0, 2);
     }
 
-    // Accessor to compute earnings across different standard timeframes
     public function getCalculatedEarningsAttribute(): array
     {
         $BaseSalary   = $this->salary ?: (($this->salary_min + $this->salary_max) / 2);
@@ -67,7 +76,6 @@ class JobApplication extends Model
             $Monthly = ($Weekly * 52) / 12;
             $Annual  = $Weekly * 52;
         } else {
-            // Monthly base calculation
             $Monthly = $BaseSalary;
             $Annual  = $Monthly * 12;
             $Weekly  = $Annual / 52;
@@ -89,9 +97,16 @@ class JobApplication extends Model
         return $this->hasMany(Interview::class)->orderBy('scheduled_at', 'ASC');
     }
 
-    // Helper property to check if at least one interview was completed
     public function getHasBeenInterviewedAttribute(): bool
     {
         return $this->Interviews()->where('status', 'Completed')->exists();
+    }
+
+    // 👇 Public URL for the resume (null when none uploaded)
+    public function getResumeUrlAttribute(): ?string
+    {
+        return $this->resume_path
+            ? Storage::disk('public')->url($this->resume_path)
+            : null;
     }
 }
