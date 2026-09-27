@@ -31,7 +31,7 @@ class ProfileController extends Controller
 
         $request->user()->save();
 
-        return back()->with('success', 'Password updated.');
+        return back()->with('success', 'Account information updated.');
     }
 
     public function destroy(Request $request): RedirectResponse

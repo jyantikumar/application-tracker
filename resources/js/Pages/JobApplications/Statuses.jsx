@@ -85,7 +85,7 @@ function getPageNumbers(current, total) {
 export default function Statuses({ statuses = [] }) {
   const { flash } = usePage().props
   const [editing, setEditing] = useState(null)
-  const [deleteTarget, setDeleteTarget] = useState(null)  // 👈 new
+  const [deleteTarget, setDeleteTarget] = useState(null)
   const createForm = useForm({ name: "" })
   const editForm = useForm({ name: "" })
 
@@ -127,14 +127,17 @@ export default function Statuses({ statuses = [] }) {
         </Alert>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
-        <Card className="h-fit">
+      <div className="flex flex-col gap-6">
+        {/* Add status — full width, horizontal form */}
+        <Card>
           <CardHeader>
-            <CardTitle className="font-heading text-base">Add status</CardTitle>
+            <CardTitle className="font-heading text-base">
+              Add status
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <form
-              className="space-y-4"
+              className="flex flex-col gap-3 sm:flex-row sm:items-end"
               onSubmit={(e) => {
                 e.preventDefault()
                 createForm.post(route("application-statuses.store"), {
@@ -142,28 +145,28 @@ export default function Statuses({ statuses = [] }) {
                 })
               }}
             >
-              <div className="space-y-2">
-                <Label htmlFor="status-name">Name</Label>
+              <div className="flex-1 space-y-2">
                 <Input
                   id="status-name"
                   value={createForm.data.name}
                   onChange={(e) => createForm.setData("name", e.target.value)}
-                  placeholder="Applied, Interviewing..."
+                  placeholder="Applied, Interviewing, Offer..."
                   required
                 />
               </div>
               <Button
                 type="submit"
                 disabled={createForm.processing}
-                className="w-full"
+                className="sm:w-auto"
               >
                 <PlusIcon />
-                Add status
+                Add
               </Button>
             </form>
           </CardContent>
         </Card>
 
+        {/* Statuses table — full width */}
         <Card className="gap-0 overflow-hidden py-0">
           <Table>
             <TableHeader>
@@ -206,7 +209,7 @@ export default function Statuses({ statuses = [] }) {
                           variant="ghost"
                           size="icon-sm"
                           className="text-destructive"
-                          onClick={() => setDeleteTarget(status)}  // 👈 changed
+                          onClick={() => setDeleteTarget(status)}
                         >
                           <Trash2Icon />
                         </Button>
@@ -218,7 +221,6 @@ export default function Statuses({ statuses = [] }) {
             </TableBody>
           </Table>
 
-          {/* Pagination footer */}
           {statuses.length > 0 && (
             <div className="flex flex-col items-center justify-between gap-3 border-t border-border/60 px-4 py-3 sm:flex-row">
               <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
@@ -354,7 +356,7 @@ export default function Statuses({ statuses = [] }) {
         </DialogContent>
       </Dialog>
 
-      {/* 👇 Delete confirmation dialog */}
+      {/* Delete confirmation dialog */}
       <AlertDialog
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
