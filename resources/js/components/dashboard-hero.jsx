@@ -62,10 +62,6 @@ export function DashboardHero({
                 Track applications, interview momentum, and outcomes in one place.
               </CardDescription>
               <div className="flex flex-wrap gap-2 pt-2">
-                <Button onClick={openCreate}>
-                  <PlusIcon />
-                  Log application
-                </Button>
                 <Button asChild variant="outline">
                   <Link href={route("job-applications.applications")}>
                     View all applications
