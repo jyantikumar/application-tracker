@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from "react"
 import { Head, router, useForm } from "@inertiajs/react"
-import AppLayout from "@/layouts/AppLayout"
 import { useApplicationModal } from "@/components/application-modal-provider"
 import {
   AlertDialog,
@@ -177,13 +176,7 @@ export default function Applications({
   const visibleColumnCount = Object.values(columnVisibility).filter(Boolean).length
 
   return (
-    <AppLayout
-      active="applications"
-      title="Applications"
-      breadcrumbs={[
-        { label: "Applications", href: route("job-applications.applications") },
-      ]}
-    >
+    <>
       <Head title="All Job Applications" />
 
       <div className="space-y-6">
@@ -198,7 +191,7 @@ export default function Applications({
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Button size="sm" onClick={openCreate}>
+            <Button size="sm" className="rounded-sm p-4 " onClick={openCreate}>
               Log application
             </Button>
             <div className="relative w-full sm:w-56">
@@ -681,6 +674,14 @@ export default function Applications({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AppLayout>
+    </>
   )
+}
+
+Applications.layoutProps = {
+  active: "applications",
+  title: "Applications",
+  breadcrumbs: [
+    { label: "Applications", href: route("job-applications.applications") },
+  ],
 }

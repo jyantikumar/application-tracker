@@ -1,5 +1,4 @@
 import { Head, usePage } from "@inertiajs/react"
-import AppLayout from "@/layouts/AppLayout"
 import { DashboardHero } from "@/components/dashboard-hero"
 import { PipelineStages } from "@/components/pipeline-stages"
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"
@@ -26,12 +25,7 @@ export default function Index({
   const { flash, applicationStatuses = [] } = usePage().props
 
   return (
-    <AppLayout
-      active="dashboard"
-      title="Overview"
-      breadcrumbs={[{ label: "Overview" }]}
-      flush
-    >
+    <>
       <Head title="Dashboard" />
 
       {flash?.success && (
@@ -71,6 +65,13 @@ export default function Index({
       </section>
 
       <RecentApplicationsTable RecentApplications={RecentApplications} />
-    </AppLayout>
+    </>
   )
+}
+
+Index.layoutProps = {
+  active: "dashboard",
+  title: "Overview",
+  breadcrumbs: [{ label: "Overview" }],
+  flush: true,
 }

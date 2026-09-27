@@ -35,12 +35,12 @@ export default function AppLayout({
         }}
       >
         <AppSidebar
-          variant="inset"
+          variant="sidebar"
           collapsible="icon"
           active={active}
           onImport={() => setIsImportModalOpen(true)}
         />
-        <SidebarInset className="min-h-svh min-w-0 overflow-x-hidden outline-none">
+        <SidebarInset className="min-h-svh min-w-0 overflow-x-hidden outline-none focus:outline-none focus-visible:ring-0 focus-visible:outline-none">
           <SiteHeader title={title} breadcrumbs={breadcrumbs} />
           <div className="flex flex-1 flex-col">
             <div className="@container/main flex flex-1 flex-col gap-2">

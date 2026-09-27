@@ -1,6 +1,5 @@
 import React, { useState } from "react"
 import { Head, router, useForm, usePage } from "@inertiajs/react"
-import AppLayout from "@/layouts/AppLayout"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -36,11 +35,7 @@ export default function Sources({ sources = [] }) {
   }
 
   return (
-    <AppLayout
-      active="sources"
-      title="Sources"
-      breadcrumbs={[{ label: "Sources" }]}
-    >
+    <>
       <Head title="Application Sources" />
 
       {flash?.success && (
@@ -169,6 +164,12 @@ export default function Sources({ sources = [] }) {
           </form>
         </DialogContent>
       </Dialog>
-    </AppLayout>
+    </>
   )
+}
+
+Sources.layoutProps = {
+  active: "sources",
+  title: "Sources",
+  breadcrumbs: [{ label: "Sources" }],
 }

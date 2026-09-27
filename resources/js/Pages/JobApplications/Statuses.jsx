@@ -1,6 +1,5 @@
 import React, { useState } from "react"
 import { Head, router, useForm, usePage } from "@inertiajs/react"
-import AppLayout from "@/layouts/AppLayout"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -36,11 +35,7 @@ export default function Statuses({ statuses = [] }) {
   }
 
   return (
-    <AppLayout
-      active="statuses"
-      title="Statuses"
-      breadcrumbs={[{ label: "Statuses" }]}
-    >
+    <>
       <Head title="Application Statuses" />
 
       {flash?.success && (
@@ -169,6 +164,12 @@ export default function Statuses({ statuses = [] }) {
           </form>
         </DialogContent>
       </Dialog>
-    </AppLayout>
+    </>
   )
+}
+
+Statuses.layoutProps = {
+  active: "statuses",
+  title: "Statuses",
+  breadcrumbs: [{ label: "Statuses" }],
 }

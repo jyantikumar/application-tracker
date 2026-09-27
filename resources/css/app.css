@@ -88,6 +88,12 @@
     --sidebar-border: oklch(1 0 0 / 8%);
     --sidebar-ring: oklch(0.72 0.14 128);
   }
+  /* Remove default browser focus rings on focused/active components */
+*:focus,
+*:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
 
   * {
     @apply border-border;
