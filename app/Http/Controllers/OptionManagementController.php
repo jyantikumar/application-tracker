@@ -5,144 +5,89 @@ namespace App\Http\Controllers;
 use App\Models\ApplicationSource;
 use App\Models\ApplicationStatus;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
+use Inertia\Inertia;
+use Inertia\Response;
+use Illuminate\Http\RedirectResponse;
 
 class OptionManagementController extends Controller
 {
-    /* ============================================================
-     |  SOURCES
-     ============================================================ */
-
-    public function indexSources()
+    public function indexSources(): Response
     {
-        /** @var \App\Models\User $CurrentUser */
-        $CurrentUser = Auth::user();
+        $sources = ApplicationSource::where('user_id', auth()->id())->get();
 
-        $Sources = $CurrentUser->sources()->orderBy('name')->get();
-
-        return view('job_applications.sources', compact('Sources'));
+        return Inertia::render('JobApplications/Sources', [
+            'sources' => $sources,
+        ]);
     }
 
-    public function storeSource(Request $Request)
+    public function storeSource(Request $request): RedirectResponse
     {
-        $Validated = $Request->validate([
-            'name' => [
-                'required', 'string', 'max:100',
-                Rule::unique('application_sources', 'name')->where('user_id', Auth::id()),
-            ],
-        ], [
-            'name.unique' => 'You already have a source with that name.',
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
         ]);
 
-        /** @var \App\Models\User $CurrentUser */
-        $CurrentUser = Auth::user();
-        $CurrentUser->sources()->create($Validated);
+        $validated['user_id'] = auth()->id();
+        ApplicationSource::create($validated);
 
-        return redirect()->route('application-sources.index')
-                         ->with('success', 'Source added successfully.');
+        return redirect()->back()->with('success', 'Source added successfully.');
     }
 
-    public function updateSource(Request $Request, ApplicationSource $Source)
+    public function updateSource(Request $request, ApplicationSource $Source): RedirectResponse
     {
-        if ($Source->user_id !== Auth::id()) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $Validated = $Request->validate([
-            'name' => [
-                'required', 'string', 'max:100',
-                Rule::unique('application_sources', 'name')
-                    ->where('user_id', Auth::id())
-                    ->ignore($Source->id),
-            ],
-        ], [
-            'name.unique' => 'You already have a source with that name.',
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
         ]);
 
-        $Source->update($Validated);
+        $Source->update($validated);
 
-        return redirect()->route('application-sources.index')
-                         ->with('success', 'Source updated successfully.');
+        return redirect()->back()->with('success', 'Source updated successfully.');
     }
 
-    public function destroySource(ApplicationSource $Source)
+    public function destroySource(ApplicationSource $Source): RedirectResponse
     {
-        if ($Source->user_id !== Auth::id()) {
-            abort(403, 'Unauthorized action.');
-        }
-
         $Source->delete();
 
-        return redirect()->route('application-sources.index')
-                         ->with('success', 'Source deleted.');
+        return redirect()->back()->with('success', 'Source deleted successfully.');
     }
 
-    /* ============================================================
-     |  STATUSES
-     ============================================================ */
-
-    public function indexStatuses()
+    public function indexStatuses(): Response
     {
-        /** @var \App\Models\User $CurrentUser */
-        $CurrentUser = Auth::user();
+        $statuses = ApplicationStatus::where('user_id', auth()->id())->get();
 
-        $Statuses = $CurrentUser->statuses()->orderBy('name')->get();
-
-        return view('job_applications.statuses', compact('Statuses'));
+        return Inertia::render('JobApplications/Statuses', [
+            'statuses' => $statuses,
+        ]);
     }
 
-    public function storeStatus(Request $Request)
+    public function storeStatus(Request $request): RedirectResponse
     {
-        $Validated = $Request->validate([
-            'name' => [
-                'required', 'string', 'max:100',
-                Rule::unique('application_statuses', 'name')->where('user_id', Auth::id()),
-            ],
-        ], [
-            'name.unique' => 'You already have a status with that name.',
+        $validated = $request->validate([
+            'name'  => 'required|string|max:255',
+            'color' => 'nullable|string|max:50',
         ]);
 
-        /** @var \App\Models\User $CurrentUser */
-        $CurrentUser = Auth::user();
-        $CurrentUser->statuses()->create($Validated);
+        $validated['user_id'] = auth()->id();
+        ApplicationStatus::create($validated);
 
-        return redirect()->route('application-statuses.index')
-                         ->with('success', 'Status added successfully.');
+        return redirect()->back()->with('success', 'Status added successfully.');
     }
 
-    public function updateStatus(Request $Request, ApplicationStatus $Status)
+    public function updateStatus(Request $request, ApplicationStatus $Status): RedirectResponse
     {
-        if ($Status->user_id !== Auth::id()) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $Validated = $Request->validate([
-            'name' => [
-                'required', 'string', 'max:100',
-                Rule::unique('application_statuses', 'name')
-                    ->where('user_id', Auth::id())
-                    ->ignore($Status->id),
-            ],
-        ], [
-            'name.unique' => 'You already have a status with that name.',
+        $validated = $request->validate([
+            'name'  => 'required|string|max:255',
+            'color' => 'nullable|string|max:50',
         ]);
 
-        $Status->update($Validated);
+        $Status->update($validated);
 
-        return redirect()->route('application-statuses.index')
-                         ->with('success', 'Status updated successfully.');
+        return redirect()->back()->with('success', 'Status updated successfully.');
     }
 
-    public function destroyStatus(ApplicationStatus $Status)
+    public function destroyStatus(ApplicationStatus $Status): RedirectResponse
     {
-        if ($Status->user_id !== Auth::id()) {
-            abort(403, 'Unauthorized action.');
-        }
-
         $Status->delete();
 
-        return redirect()->route('application-statuses.index')
-                         ->with('success', 'Status deleted.');
+        return redirect()->back()->with('success', 'Status deleted successfully.');
     }
 }
