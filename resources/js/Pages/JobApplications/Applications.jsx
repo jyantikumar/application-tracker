@@ -55,7 +55,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   BriefcaseIcon,
   CalendarIcon,
@@ -83,9 +82,6 @@ function formatDate(value) {
   })
 }
 
-/**
- * Determine how to render the resume inline based on its file extension.
- */
 function getResumeKind(url = "") {
   const lower = url.toLowerCase().split("?")[0]
   if (lower.endsWith(".pdf")) return "pdf"
@@ -93,9 +89,6 @@ function getResumeKind(url = "") {
   return "other"
 }
 
-/**
- * Build a compact pagination range like [1, "...", 4, 5, 6, "...", 20]
- */
 function getPageNumbers(current, total) {
   const delta = 1
   const range = []
@@ -140,7 +133,6 @@ export default function Applications({
   const [activeTab, setActiveTab] = useState("general")
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
 
-  // ---- Pagination state ----
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
 
@@ -200,7 +192,6 @@ export default function Applications({
     })
   }, [JobApplications, searchTerm, jobTypeFilter, statusFilter])
 
-  // Reset to page 1 whenever filters change
   useEffect(() => {
     setPage(1)
   }, [searchTerm, jobTypeFilter, statusFilter, pageSize])
@@ -468,7 +459,6 @@ export default function Applications({
             </TableBody>
           </Table>
 
-          {/* Pagination footer */}
           {filteredApplications.length > 0 && (
             <div className="flex flex-col items-center justify-between gap-3 border-t border-border/60 px-4 py-3 sm:flex-row">
               <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
@@ -607,33 +597,33 @@ export default function Applications({
                 </div>
               </SheetHeader>
 
-              <Tabs
-                value={activeTab}
-                onValueChange={setActiveTab}
-                className="flex min-h-0 flex-1 flex-col"
-              >
-                <div className="border-b border-border/60 px-6">
-                  <TabsList className="bg-transparent">
-                    <TabsTrigger value="general">General</TabsTrigger>
-                    <TabsTrigger value="description">Job desc.</TabsTrigger>
-                    <TabsTrigger value="resume" className="gap-1.5">
-                      Resume
-                      {selectedApp.resume_path && (
-                        <span className="size-1.5 rounded-full bg-primary" />
-                      )}
-                    </TabsTrigger>
-                    <TabsTrigger value="interviews" className="gap-1.5">
-                      Interviews
-                      <Badge variant="secondary" className="px-1.5 text-[10px]">
-                        {(selectedApp.interviews || selectedApp.Interviews || [])
-                          .length}
-                      </Badge>
-                    </TabsTrigger>
-                  </TabsList>
-                </div>
+              {/* Section switcher — replaces TabsList */}
+              <div className="shrink-0 border-b border-border/60 px-6 py-3">
+                <Select value={activeTab} onValueChange={setActiveTab}>
+                  <SelectTrigger className="w-full">
 
-                <div className="flex-1 space-y-6 overflow-y-auto p-6">
-                  <TabsContent value="general" className="mt-0 space-y-6">
+                    <SelectValue placeholder="Select section" />
+                  </SelectTrigger>
+                  <SelectContent position="popper">
+                    <SelectItem value="general">General</SelectItem>
+                    <SelectItem value="description">Job description</SelectItem>
+                    <SelectItem value="resume">
+                      Resume{selectedApp.resume_path ? " •" : ""}
+                    </SelectItem>
+                    <SelectItem value="interviews">
+                      Interviews (
+                      {(selectedApp.interviews || selectedApp.Interviews || [])
+                        .length}
+                      )
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Content — replaces TabsContent */}
+              <div className="flex-1 space-y-6 overflow-y-auto p-6">
+                {activeTab === "general" && (
+                  <div className="space-y-6">
                     <div className="rounded-xl border border-border/60 bg-primary/5 p-4">
                       <h4 className="mb-3 text-[11px] font-bold tracking-widest text-muted-foreground uppercase">
                         Estimated compensation
@@ -674,9 +664,11 @@ export default function Applications({
                         </p>
                       </div>
                     </div>
-                  </TabsContent>
+                  </div>
+                )}
 
-                  <TabsContent value="description" className="mt-0 space-y-4">
+                {activeTab === "description" && (
+                  <div className="space-y-4">
                     {selectedApp.ApplicationURL && (
                       <Button asChild variant="outline" size="sm">
                         <a
@@ -695,9 +687,11 @@ export default function Applications({
                     <p className="text-sm leading-relaxed whitespace-pre-line text-muted-foreground">
                       {selectedApp.description || "No description provided."}
                     </p>
-                  </TabsContent>
+                  </div>
+                )}
 
-                  <TabsContent value="resume" className="mt-0 space-y-4">
+                {activeTab === "resume" && (
+                  <div className="space-y-4">
                     {!selectedApp.resume_path ? (
                       <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border/60 bg-muted/20 py-14 text-center">
                         <FileTextIcon className="size-8 text-muted-foreground" />
@@ -774,9 +768,11 @@ export default function Applications({
                         })()}
                       </>
                     )}
-                  </TabsContent>
+                  </div>
+                )}
 
-                  <TabsContent value="interviews" className="mt-0 space-y-6">
+                {activeTab === "interviews" && (
+                  <div className="space-y-6">
                     <div className="space-y-3">
                       <h4 className="text-[11px] font-bold tracking-widest text-muted-foreground uppercase">
                         Logged rounds
@@ -894,9 +890,9 @@ export default function Applications({
                         </div>
                       </div>
                     </form>
-                  </TabsContent>
-                </div>
-              </Tabs>
+                  </div>
+                )}
+              </div>
 
               <div className="flex shrink-0 items-center justify-between gap-3 border-t border-border/60 bg-background/90 p-4 backdrop-blur">
                 {activeTab === "interviews" ? (
