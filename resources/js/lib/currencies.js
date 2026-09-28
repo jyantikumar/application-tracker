@@ -57,6 +57,27 @@ export function FormatPhpAmount(Amount) {
   return FormatCurrencyAmount(Amount, "PHP", "en-PH")
 }
 
+export function FormatPhpRange(MinAmount, MaxAmount) {
+  const Min = Number(MinAmount)
+  const Max = Number(MaxAmount)
+  if (!Number.isFinite(Min) || !Number.isFinite(Max)) return "—"
+  if (Min === Max) return FormatPhpAmount(Min)
+  return `${FormatPhpAmount(Min)} – ${FormatPhpAmount(Max)}`
+}
+
+/** Convert a pay-rate amount into an estimated monthly figure. */
+export function ToMonthlyAmount(Amount, PayRateType = "Monthly", HoursPerWeek = 40) {
+  const Numeric = Number(Amount)
+  if (!Number.isFinite(Numeric) || Numeric < 0) return null
+
+  if (PayRateType === "Hourly") {
+    const Hours = Number(HoursPerWeek) || 40
+    return (Numeric * Hours * 52) / 12
+  }
+
+  return Numeric
+}
+
 /**
  * Fetch PHP conversion from the Laravel currency endpoint.
  * @returns {Promise<{ amount: number, rate: number, from: string, to: string, formatted: string } | null>}
@@ -97,4 +118,32 @@ export async function ConvertToPhp(FromCurrency, Amount) {
   }
 
   return Response.json()
+}
+
+/**
+ * Convert a min/max monthly range to PHP using one rate lookup.
+ * @returns {Promise<{ rate: number, from: string, min: number, max: number, formatted: string } | null>}
+ */
+export async function ConvertRangeToPhp(FromCurrency, MinMonthly, MaxMonthly) {
+  const Min = Number(MinMonthly)
+  const Max = Number(MaxMonthly)
+  if (!Number.isFinite(Min) || !Number.isFinite(Max) || Min < 0 || Max < 0) {
+    return null
+  }
+
+  const [Low, High] = Min <= Max ? [Min, Max] : [Max, Min]
+  const Base = await ConvertToPhp(FromCurrency, Low)
+  if (!Base) return null
+
+  const Rate = Number(Base.rate) || 0
+  const MinPhp = Number(Base.amount)
+  const MaxPhp = Math.round(High * Rate * 100) / 100
+
+  return {
+    rate: Rate,
+    from: Base.from,
+    min: MinPhp,
+    max: MaxPhp,
+    formatted: FormatPhpRange(MinPhp, MaxPhp),
+  }
 }

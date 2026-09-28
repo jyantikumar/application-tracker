@@ -103,7 +103,8 @@ function Combobox({
         </div>
         <div
           role="listbox"
-          className="max-h-60 overflow-y-auto p-1"
+          className="max-h-60 overflow-y-auto overscroll-contain p-1"
+          onWheel={(Event) => Event.stopPropagation()}
         >
           {Filtered.length === 0 ? (
             <p className="px-2 py-6 text-center text-sm text-muted-foreground">

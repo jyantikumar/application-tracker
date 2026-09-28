@@ -31,7 +31,12 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { CurrencyCombobox } from "@/components/currency-combobox"
-import { ConvertToPhp, FormatPhpAmount } from "@/lib/currencies"
+import {
+  ConvertRangeToPhp,
+  FormatPhpAmount,
+  FormatPhpRange,
+  ToMonthlyAmount,
+} from "@/lib/currencies"
 import {
   AlertCircleIcon,
   FileTextIcon,
@@ -150,7 +155,7 @@ export function ApplicationFormDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, isEdit, application?.id])
 
-  // Live PHP conversion preview for remote compensation (uses min/max midpoint)
+  // Live PHP conversion preview for remote compensation (min → max monthly)
   useEffect(() => {
     if (!open || form.data.job_type !== "Remote") {
       setPhpPreview(null)
@@ -158,22 +163,33 @@ export function ApplicationFormDialog({
     }
 
     const Currency = String(form.data.currency || "").toUpperCase()
-    const Mid = Number(MidpointSalary(form.data.salary_min, form.data.salary_max))
-    if (!Currency || Currency === "PHP" || !Number.isFinite(Mid) || Mid <= 0) {
+    const MinMonthly = ToMonthlyAmount(
+      form.data.salary_min,
+      form.data.pay_rate_type,
+      form.data.hours_per_week
+    )
+    const MaxMonthly = ToMonthlyAmount(
+      form.data.salary_max,
+      form.data.pay_rate_type,
+      form.data.hours_per_week
+    )
+
+    if (
+      !Currency ||
+      Currency === "PHP" ||
+      MinMonthly == null ||
+      MaxMonthly == null ||
+      MinMonthly <= 0 ||
+      MaxMonthly <= 0
+    ) {
       setPhpPreview(null)
       return
-    }
-
-    let Hours = Number(form.data.hours_per_week) || 40
-    let Monthly = Mid
-    if (form.data.pay_rate_type === "Hourly") {
-      Monthly = (Mid * Hours * 52) / 12
     }
 
     let Cancelled = false
     setPhpPreviewLoading(true)
     const Timer = window.setTimeout(() => {
-      ConvertToPhp(Currency, Monthly)
+      ConvertRangeToPhp(Currency, MinMonthly, MaxMonthly)
         .then((Result) => {
           if (!Cancelled) setPhpPreview(Result)
         })
@@ -460,27 +476,44 @@ export function ApplicationFormDialog({
                       />
                     </div>
                     {String(form.data.currency || "").toUpperCase() !== "PHP" &&
-                      Number(MidpointSalary(
-                        form.data.salary_min,
-                        form.data.salary_max
-                      )) > 0 && (
+                      Number(form.data.salary_min) > 0 &&
+                      Number(form.data.salary_max) > 0 && (
                         <div className="pointer-events-none sm:col-span-2 rounded-lg border border-border/60 bg-background/80 px-3 py-2.5 select-none">
                           <p className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
-                            Est. monthly in PHP (midpoint)
+                            Est. monthly in PHP
                           </p>
-                          <p className="mt-0.5 text-sm font-semibold tabular-nums text-foreground">
-                            {PhpPreviewLoading
-                              ? "Converting…"
-                              : PhpPreview
-                                ? FormatPhpAmount(PhpPreview.amount)
-                                : "—"}
-                          </p>
-                          {PhpPreview?.rate ? (
-                            <p className="mt-0.5 text-[11px] text-muted-foreground">
-                              Rate ≈ {Number(PhpPreview.rate).toFixed(4)} PHP per{" "}
-                              {form.data.currency}
+                          {PhpPreviewLoading ? (
+                            <p className="mt-0.5 text-sm text-muted-foreground">
+                              Converting…
                             </p>
-                          ) : null}
+                          ) : PhpPreview ? (
+                            <div className="mt-2 grid grid-cols-2 gap-3">
+                              <div>
+                                <p className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+                                  Minimum
+                                </p>
+                                <p className="text-sm font-semibold tabular-nums text-foreground">
+                                  {FormatPhpAmount(PhpPreview.min)}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+                                  Maximum
+                                </p>
+                                <p className="text-sm font-semibold tabular-nums text-foreground">
+                                  {FormatPhpAmount(PhpPreview.max)}
+                                </p>
+                              </div>
+                              <p className="col-span-2 text-[11px] text-muted-foreground">
+                                Range {FormatPhpRange(PhpPreview.min, PhpPreview.max)}
+                                {PhpPreview.rate
+                                  ? ` · rate ≈ ${Number(PhpPreview.rate).toFixed(4)} PHP per ${form.data.currency}`
+                                  : ""}
+                              </p>
+                            </div>
+                          ) : (
+                            <p className="mt-0.5 text-sm text-muted-foreground">—</p>
+                          )}
                         </div>
                       )}
                   </div>

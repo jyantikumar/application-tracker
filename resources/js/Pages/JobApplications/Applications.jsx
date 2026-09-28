@@ -72,7 +72,12 @@ import {
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { ConvertToPhp, FormatPhpAmount } from "@/lib/currencies"
+import {
+  ConvertRangeToPhp,
+  FormatPhpAmount,
+  FormatPhpRange,
+  ToMonthlyAmount,
+} from "@/lib/currencies"
 
 function formatDate(value) {
   if (!value) return "—"
@@ -224,9 +229,25 @@ export default function Applications({
     }
 
     const Currency = String(selectedApp.currency || "").toUpperCase()
-    const Monthly = Number(selectedApp.calculated_earnings?.Monthly)
+    const MinMonthly = ToMonthlyAmount(
+      selectedApp.salary_min ?? selectedApp.salary,
+      selectedApp.pay_rate_type,
+      selectedApp.hours_per_week
+    )
+    const MaxMonthly = ToMonthlyAmount(
+      selectedApp.salary_max ?? selectedApp.salary,
+      selectedApp.pay_rate_type,
+      selectedApp.hours_per_week
+    )
 
-    if (!Currency || Currency === "PHP" || !Number.isFinite(Monthly) || Monthly <= 0) {
+    if (
+      !Currency ||
+      Currency === "PHP" ||
+      MinMonthly == null ||
+      MaxMonthly == null ||
+      MinMonthly <= 0 ||
+      MaxMonthly <= 0
+    ) {
       setPhpConversion(null)
       setPhpConversionError(null)
       setPhpConversionLoading(false)
@@ -237,7 +258,7 @@ export default function Applications({
     setPhpConversionLoading(true)
     setPhpConversionError(null)
 
-    ConvertToPhp(Currency, Monthly)
+    ConvertRangeToPhp(Currency, MinMonthly, MaxMonthly)
       .then((Result) => {
         if (!Cancelled) setPhpConversion(Result)
       })
@@ -254,7 +275,16 @@ export default function Applications({
     return () => {
       Cancelled = true
     }
-  }, [isDrawerOpen, selectedApp?.id, selectedApp?.currency, selectedApp?.calculated_earnings?.Monthly])
+  }, [
+    isDrawerOpen,
+    selectedApp?.id,
+    selectedApp?.currency,
+    selectedApp?.salary,
+    selectedApp?.salary_min,
+    selectedApp?.salary_max,
+    selectedApp?.pay_rate_type,
+    selectedApp?.hours_per_week,
+  ])
 
   const handleInterviewSubmit = (e) => {
     e.preventDefault()
@@ -693,7 +723,7 @@ export default function Applications({
                         className="pointer-events-none select-none rounded-xl border border-border/60 bg-muted/30 p-4"
                         aria-live="polite"
                       >
-                        <h4 className="mb-1 text-[11px] font-bold tracking-widest text-muted-foreground uppercase">
+                        <h4 className="mb-3 text-[11px] font-bold tracking-widest text-muted-foreground uppercase">
                           Monthly equivalent in PHP
                         </h4>
                         {PhpConversionLoading ? (
@@ -701,19 +731,42 @@ export default function Applications({
                         ) : PhpConversionError ? (
                           <p className="text-sm text-muted-foreground">{PhpConversionError}</p>
                         ) : PhpConversion ? (
-                          <>
-                            <p className="text-lg font-semibold tabular-nums text-foreground">
-                              {FormatPhpAmount(PhpConversion.amount)}
-                            </p>
-                            <p className="mt-1 text-xs text-muted-foreground">
-                              Based on{" "}
-                              {selectedApp.currency}{" "}
-                              {selectedApp.calculated_earnings?.Monthly ?? "0.00"}{" "}
-                              monthly · rate ≈{" "}
+                          <div className="space-y-3">
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="rounded-lg border border-border/50 bg-background/60 p-3">
+                                <p className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+                                  Minimum
+                                </p>
+                                <p className="mt-1 text-base font-semibold tabular-nums text-foreground">
+                                  {FormatPhpAmount(PhpConversion.min)}
+                                </p>
+                              </div>
+                              <div className="rounded-lg border border-border/50 bg-background/60 p-3">
+                                <p className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+                                  Maximum
+                                </p>
+                                <p className="mt-1 text-base font-semibold tabular-nums text-foreground">
+                                  {FormatPhpAmount(PhpConversion.max)}
+                                </p>
+                              </div>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              Range {FormatPhpRange(PhpConversion.min, PhpConversion.max)}
+                              {" · "}
+                              based on {selectedApp.currency}{" "}
+                              {Number(
+                                selectedApp.salary_min ?? selectedApp.salary ?? 0
+                              ).toLocaleString()}
+                              {" – "}
+                              {Number(
+                                selectedApp.salary_max ?? selectedApp.salary ?? 0
+                              ).toLocaleString()}
+                              {selectedApp.pay_rate_type === "Hourly" ? " /hr" : " /mo"}
+                              {" · rate ≈ "}
                               {Number(PhpConversion.rate).toFixed(4)} PHP per{" "}
                               {selectedApp.currency}
                             </p>
-                          </>
+                          </div>
                         ) : (
                           <p className="text-sm text-muted-foreground">—</p>
                         )}
