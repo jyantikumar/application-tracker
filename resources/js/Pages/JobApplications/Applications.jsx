@@ -72,6 +72,7 @@ import {
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { ConvertToPhp, FormatPhpAmount } from "@/lib/currencies"
 
 function formatDate(value) {
   if (!value) return "—"
@@ -132,6 +133,9 @@ export default function Applications({
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("general")
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
+  const [PhpConversion, setPhpConversion] = useState(null)
+  const [PhpConversionLoading, setPhpConversionLoading] = useState(false)
+  const [PhpConversionError, setPhpConversionError] = useState(null)
 
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -210,6 +214,47 @@ export default function Applications({
     setIsDrawerOpen(true)
     interviewForm.reset()
   }
+
+  useEffect(() => {
+    if (!isDrawerOpen || !selectedApp) {
+      setPhpConversion(null)
+      setPhpConversionError(null)
+      setPhpConversionLoading(false)
+      return
+    }
+
+    const Currency = String(selectedApp.currency || "").toUpperCase()
+    const Monthly = Number(selectedApp.calculated_earnings?.Monthly)
+
+    if (!Currency || Currency === "PHP" || !Number.isFinite(Monthly) || Monthly <= 0) {
+      setPhpConversion(null)
+      setPhpConversionError(null)
+      setPhpConversionLoading(false)
+      return
+    }
+
+    let Cancelled = false
+    setPhpConversionLoading(true)
+    setPhpConversionError(null)
+
+    ConvertToPhp(Currency, Monthly)
+      .then((Result) => {
+        if (!Cancelled) setPhpConversion(Result)
+      })
+      .catch(() => {
+        if (!Cancelled) {
+          setPhpConversion(null)
+          setPhpConversionError("Could not load PHP conversion right now.")
+        }
+      })
+      .finally(() => {
+        if (!Cancelled) setPhpConversionLoading(false)
+      })
+
+    return () => {
+      Cancelled = true
+    }
+  }, [isDrawerOpen, selectedApp?.id, selectedApp?.currency, selectedApp?.calculated_earnings?.Monthly])
 
   const handleInterviewSubmit = (e) => {
     e.preventDefault()
@@ -560,7 +605,7 @@ export default function Applications({
       <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
         <SheetContent
           side="right"
-          className="flex h-full w-full flex-col overflow-hidden p-0 sm:max-w-[1100px] lg:max-w-[1200px] xl:max-w-[1300px]"
+          className="flex h-full w-full flex-col overflow-hidden p-0 data-[side=right]:w-full data-[side=right]:sm:max-w-[50vw]"
         >
           {selectedApp && (
             <div className="flex h-full flex-col">
@@ -634,7 +679,7 @@ export default function Applications({
                             <span className="block text-[10px] font-bold text-muted-foreground uppercase">
                               {period}
                             </span>
-                            <span className="text-sm font-semibold tabular-nums">
+                            <span className="pointer-events-none text-sm font-semibold tabular-nums select-none">
                               {selectedApp.currency || ""}{" "}
                               {selectedApp.calculated_earnings?.[period] || "0.00"}
                             </span>
@@ -642,6 +687,38 @@ export default function Applications({
                         ))}
                       </div>
                     </div>
+
+                    {String(selectedApp.currency || "").toUpperCase() !== "PHP" && (
+                      <div
+                        className="pointer-events-none select-none rounded-xl border border-border/60 bg-muted/30 p-4"
+                        aria-live="polite"
+                      >
+                        <h4 className="mb-1 text-[11px] font-bold tracking-widest text-muted-foreground uppercase">
+                          Monthly equivalent in PHP
+                        </h4>
+                        {PhpConversionLoading ? (
+                          <p className="text-sm text-muted-foreground">Converting…</p>
+                        ) : PhpConversionError ? (
+                          <p className="text-sm text-muted-foreground">{PhpConversionError}</p>
+                        ) : PhpConversion ? (
+                          <>
+                            <p className="text-lg font-semibold tabular-nums text-foreground">
+                              {FormatPhpAmount(PhpConversion.amount)}
+                            </p>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              Based on{" "}
+                              {selectedApp.currency}{" "}
+                              {selectedApp.calculated_earnings?.Monthly ?? "0.00"}{" "}
+                              monthly · rate ≈{" "}
+                              {Number(PhpConversion.rate).toFixed(4)} PHP per{" "}
+                              {selectedApp.currency}
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">—</p>
+                        )}
+                      </div>
+                    )}
 
                     <div className="space-y-3">
                       <h4 className="text-[11px] font-bold tracking-widest text-muted-foreground uppercase">

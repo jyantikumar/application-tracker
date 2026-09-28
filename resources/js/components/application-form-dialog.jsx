@@ -30,6 +30,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { CurrencyCombobox } from "@/components/currency-combobox"
+import { ConvertToPhp, FormatPhpAmount } from "@/lib/currencies"
 import {
   AlertCircleIcon,
   FileTextIcon,
@@ -100,6 +102,8 @@ export function ApplicationFormDialog({
   const [newStatusInput, setNewStatusInput] = useState("")
   const [isAddingOption, setIsAddingOption] = useState(false)
   const [confirmSaveOpen, setConfirmSaveOpen] = useState(false)
+  const [PhpPreview, setPhpPreview] = useState(null)
+  const [PhpPreviewLoading, setPhpPreviewLoading] = useState(false)
 
   const form = useForm(emptyForm(sources, statuses))
 
@@ -131,6 +135,54 @@ export function ApplicationFormDialog({
     form.clearErrors()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, isEdit, application?.id])
+
+  // Live PHP conversion preview for remote compensation
+  useEffect(() => {
+    if (!open || form.data.job_type !== "Remote") {
+      setPhpPreview(null)
+      return
+    }
+
+    const Currency = String(form.data.currency || "").toUpperCase()
+    const Salary = Number(form.data.salary)
+    if (!Currency || Currency === "PHP" || !Number.isFinite(Salary) || Salary <= 0) {
+      setPhpPreview(null)
+      return
+    }
+
+    let Hours = Number(form.data.hours_per_week) || 40
+    let Monthly = Salary
+    if (form.data.pay_rate_type === "Hourly") {
+      Monthly = (Salary * Hours * 52) / 12
+    }
+
+    let Cancelled = false
+    setPhpPreviewLoading(true)
+    const Timer = window.setTimeout(() => {
+      ConvertToPhp(Currency, Monthly)
+        .then((Result) => {
+          if (!Cancelled) setPhpPreview(Result)
+        })
+        .catch(() => {
+          if (!Cancelled) setPhpPreview(null)
+        })
+        .finally(() => {
+          if (!Cancelled) setPhpPreviewLoading(false)
+        })
+    }, 350)
+
+    return () => {
+      Cancelled = true
+      window.clearTimeout(Timer)
+    }
+  }, [
+    open,
+    form.data.job_type,
+    form.data.currency,
+    form.data.salary,
+    form.data.pay_rate_type,
+    form.data.hours_per_week,
+  ])
 
   const persistOption = async (endpoint, name, onSuccess) => {
     const trimmed = name.trim()
@@ -299,23 +351,12 @@ export function ApplicationFormDialog({
                 </h3>
                 {form.data.job_type === "Remote" ? (
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div className="space-y-2">
+                    <div className="space-y-2 sm:col-span-2">
                       <Label>Currency *</Label>
-                      <Select
+                      <CurrencyCombobox
                         value={form.data.currency}
-                        onValueChange={(v) => form.setData("currency", v)}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent position="popper">
-                          {["USD", "PHP", "EUR", "GBP", "AUD"].map((c) => (
-                            <SelectItem key={c} value={c}>
-                              {c}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        onValueChange={(Code) => form.setData("currency", Code)}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label>Amount *</Label>
@@ -354,6 +395,27 @@ export function ApplicationFormDialog({
                         required
                       />
                     </div>
+                    {String(form.data.currency || "").toUpperCase() !== "PHP" &&
+                      Number(form.data.salary) > 0 && (
+                        <div className="pointer-events-none sm:col-span-2 rounded-lg border border-border/60 bg-background/80 px-3 py-2.5 select-none">
+                          <p className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+                            Est. monthly in PHP
+                          </p>
+                          <p className="mt-0.5 text-sm font-semibold tabular-nums text-foreground">
+                            {PhpPreviewLoading
+                              ? "Converting…"
+                              : PhpPreview
+                                ? FormatPhpAmount(PhpPreview.amount)
+                                : "—"}
+                          </p>
+                          {PhpPreview?.rate ? (
+                            <p className="mt-0.5 text-[11px] text-muted-foreground">
+                              Rate ≈ {Number(PhpPreview.rate).toFixed(4)} PHP per{" "}
+                              {form.data.currency}
+                            </p>
+                          ) : null}
+                        </div>
+                      )}
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

@@ -1,11 +1,10 @@
 import * as React from "react"
 import { cn } from "cn"
 
-function Input({
-  className,
-  type,
-  ...props
-}) {
+const Input = React.forwardRef(function Input(
+  { className, type, ...props },
+  ref
+) {
   return (
     <input
       type={type}
@@ -14,9 +13,12 @@ function Input({
         "h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-2.5 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-0 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive md:text-sm dark:bg-input/30",
         className
       )}
+      ref={ref}
       {...props}
     />
   )
-}
+})
+
+Input.displayName = "Input"
 
 export { Input }

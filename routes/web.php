@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\JobApplicationController;
 use App\Http\Controllers\InterviewController;
 use App\Http\Controllers\OptionManagementController;
+use App\Http\Controllers\CurrencyController;
 use Illuminate\Support\Facades\Route;
 
 // Redirect root directly to job applications (will trigger login redirect if unauthenticated)
@@ -22,6 +23,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Job Application Routes
     Route::get('job-applications/list', [JobApplicationController::class, 'applications'])->name('job-applications.applications');
     Route::resource('job-applications', JobApplicationController::class);
+
+    // Currency list + PHP conversion
+    Route::get('/currencies', [CurrencyController::class, 'Index'])->name('currencies.index');
+    Route::get('/currencies/convert', [CurrencyController::class, 'Convert'])->name('currencies.convert');
 
     // Options — Sources
 Route::get('/application-sources',              [OptionManagementController::class, 'indexSources'])->name('application-sources.index');
