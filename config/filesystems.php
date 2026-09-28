@@ -38,6 +38,9 @@ return [
             'report' => false,
         ],
 
+        // Private application attachments are stored under local disk:
+        // storage/app/private/attachments/{user_id}/{application_id}/
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

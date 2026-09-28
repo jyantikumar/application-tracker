@@ -102,6 +102,16 @@ class JobApplication extends Model
         return $this->hasMany(Interview::class)->orderBy('scheduled_at', 'ASC');
     }
 
+    public function reminders(): HasMany
+    {
+        return $this->hasMany(Reminder::class, 'application_id');
+    }
+
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(Attachment::class, 'application_id')->latest();
+    }
+
     public function getHasBeenInterviewedAttribute(): bool
     {
         return $this->Interviews()->where('status', 'Completed')->exists();
@@ -113,5 +123,12 @@ class JobApplication extends Model
         return $this->resume_path
             ? Storage::disk('public')->url($this->resume_path)
             : null;
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (JobApplication $application) {
+            $application->attachments()->each(fn (Attachment $attachment) => $attachment->delete());
+        });
     }
 }

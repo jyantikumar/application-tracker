@@ -7,6 +7,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { ModeToggle } from "@/components/mode-toggle"
+import { ReminderBell } from "@/components/reminder-bell"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Link } from "@inertiajs/react"
@@ -52,6 +53,7 @@ export function SiteHeader({ title = "Overview", breadcrumbs }) {
           </BreadcrumbList>
         </Breadcrumb>
         <div className="ml-auto flex shrink-0 items-center gap-2">
+          <ReminderBell />
           <ModeToggle />
         </div>
       </div>

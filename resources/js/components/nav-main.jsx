@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { useApplicationModal } from "@/components/application-modal-provider"
 import {
@@ -58,6 +59,14 @@ export function NavMain({ items = [], onImport }) {
                 <Link href={item.url} onClick={closeMobile}>
                   {item.icon}
                   <span>{item.title}</span>
+                  {item.badge != null && (
+                    <Badge
+                      variant="destructive"
+                      className="ml-auto h-5 min-w-5 justify-center rounded-full px-1.5 text-[10px] group-data-[collapsible=icon]:hidden"
+                    >
+                      {item.badge > 9 ? "9+" : item.badge}
+                    </Badge>
+                  )}
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

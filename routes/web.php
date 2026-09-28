@@ -1,10 +1,12 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\JobApplicationController;
-use App\Http\Controllers\InterviewController;
-use App\Http\Controllers\OptionManagementController;
+use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\CurrencyController;
+use App\Http\Controllers\InterviewController;
+use App\Http\Controllers\JobApplicationController;
+use App\Http\Controllers\OptionManagementController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReminderController;
 use Illuminate\Support\Facades\Route;
 
 // Redirect root directly to job applications (will trigger login redirect if unauthenticated)
@@ -43,6 +45,17 @@ Route::delete('/application-statuses/{Status}', [OptionManagementController::cla
     Route::post('job-applications/{JobApplication}/interviews', [InterviewController::class, 'Store'])->name('interviews.store');
     Route::put('interviews/{Interview}', [InterviewController::class, 'Update'])->name('interviews.update');
     Route::delete('interviews/{Interview}', [InterviewController::class, 'Destroy'])->name('interviews.destroy');
+
+    // Attachments (private disk)
+    Route::post('job-applications/{JobApplication}/attachments', [AttachmentController::class, 'store'])->name('attachments.store');
+    Route::get('attachments/{attachment}/download', [AttachmentController::class, 'download'])->name('attachments.download');
+    Route::delete('attachments/{attachment}', [AttachmentController::class, 'destroy'])->name('attachments.destroy');
+
+    // Reminders / Notifications
+    Route::get('notifications', [ReminderController::class, 'index'])->name('notifications.index');
+    Route::post('reminders/dismiss-all', [ReminderController::class, 'dismissAll'])->name('reminders.dismiss-all');
+    Route::post('reminders/{reminder}/dismiss', [ReminderController::class, 'dismiss'])->name('reminders.dismiss');
+    Route::post('reminders/{reminder}/snooze', [ReminderController::class, 'snooze'])->name('reminders.snooze');
 
     Route::post('job-applications/import', [JobApplicationController::class, 'Import'])->name('job-applications.import');
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react"
 import { Head, router, useForm } from "@inertiajs/react"
+import { ApplicationAttachments } from "@/components/application-attachments"
 import { useApplicationModal } from "@/components/application-modal-provider"
 import {
   AlertDialog,
@@ -219,6 +220,13 @@ export default function Applications({
     setIsDrawerOpen(true)
     interviewForm.reset()
   }
+
+  // Keep the open drawer in sync after attachment / interview mutations.
+  useEffect(() => {
+    if (!selectedApp?.id) return
+    const fresh = JobApplications.find((app) => app.id === selectedApp.id)
+    if (fresh) setSelectedApp(fresh)
+  }, [JobApplications])
 
   useEffect(() => {
     if (!isDrawerOpen || !selectedApp) {
@@ -685,6 +693,10 @@ export default function Applications({
                     <SelectItem value="resume">
                       Resume{selectedApp.resume_path ? " •" : ""}
                     </SelectItem>
+                    <SelectItem value="attachments">
+                      Attachments (
+                      {(selectedApp.attachments || []).length})
+                    </SelectItem>
                     <SelectItem value="interviews">
                       Interviews (
                       {(selectedApp.interviews || selectedApp.Interviews || [])
@@ -899,6 +911,10 @@ export default function Applications({
                       </>
                     )}
                   </div>
+                )}
+
+                {activeTab === "attachments" && (
+                  <ApplicationAttachments application={selectedApp} />
                 )}
 
                 {activeTab === "interviews" && (

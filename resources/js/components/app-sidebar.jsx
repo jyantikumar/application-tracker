@@ -15,13 +15,15 @@ import {
 import {
   LayoutDashboardIcon,
   BriefcaseIcon,
+  BellIcon,
   FolderKanbanIcon,
   TagIcon,
   UserIcon,
 } from "lucide-react"
 
 export function AppSidebar({ active = "dashboard", onImport, ...props }) {
-  const { auth } = usePage().props
+  const { auth, activeReminders = [] } = usePage().props
+  const reminderCount = (activeReminders || []).length
 
   const navMain = [
     {
@@ -35,6 +37,13 @@ export function AppSidebar({ active = "dashboard", onImport, ...props }) {
       url: route("job-applications.applications"),
       icon: <BriefcaseIcon />,
       isActive: active === "applications",
+    },
+    {
+      title: "Notifications",
+      url: route("notifications.index"),
+      icon: <BellIcon />,
+      isActive: active === "notifications",
+      badge: reminderCount > 0 ? reminderCount : undefined,
     },
   ]
 

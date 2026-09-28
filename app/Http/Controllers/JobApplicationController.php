@@ -108,7 +108,7 @@ class JobApplicationController extends Controller
     public function applications(): Response
     {
         $userId = auth()->id();
-        $jobApplications = JobApplication::with('interviews')
+        $jobApplications = JobApplication::with(['interviews', 'attachments'])
             ->where('user_id', $userId)
             ->latest()
             ->get();
