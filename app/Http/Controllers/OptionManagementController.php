@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ApplicationSource;
 use App\Models\ApplicationStatus;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\RedirectResponse;
@@ -25,7 +26,13 @@ class OptionManagementController extends Controller
     public function storeSource(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => [
+                'required', 'string', 'max:255',
+                Rule::unique('application_sources', 'name')
+                    ->where('user_id', auth()->id()),
+            ],
+        ], [
+            'name.unique' => 'You already have a source with that name.',
         ]);
 
         $validated['user_id'] = auth()->id();
@@ -44,7 +51,14 @@ class OptionManagementController extends Controller
     public function updateSource(Request $request, ApplicationSource $Source): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => [
+                'required', 'string', 'max:255',
+                Rule::unique('application_sources', 'name')
+                    ->where('user_id', auth()->id())
+                    ->ignore($Source->id),
+            ],
+        ], [
+            'name.unique' => 'You already have a source with that name.',
         ]);
 
         $Source->update($validated);
@@ -73,8 +87,14 @@ class OptionManagementController extends Controller
     public function storeStatus(Request $request)
     {
         $validated = $request->validate([
-            'name'  => 'required|string|max:255',
+            'name' => [
+                'required', 'string', 'max:255',
+                Rule::unique('application_statuses', 'name')
+                    ->where('user_id', auth()->id()),
+            ],
             'color' => 'nullable|string|max:50',
+        ], [
+            'name.unique' => 'You already have a status with that name.',
         ]);
 
         $validated['user_id'] = auth()->id();
@@ -93,8 +113,15 @@ class OptionManagementController extends Controller
     public function updateStatus(Request $request, ApplicationStatus $Status): RedirectResponse
     {
         $validated = $request->validate([
-            'name'  => 'required|string|max:255',
+            'name' => [
+                'required', 'string', 'max:255',
+                Rule::unique('application_statuses', 'name')
+                    ->where('user_id', auth()->id())
+                    ->ignore($Status->id),
+            ],
             'color' => 'nullable|string|max:50',
+        ], [
+            'name.unique' => 'You already have a status with that name.',
         ]);
 
         $Status->update($validated);

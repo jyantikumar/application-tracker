@@ -1,5 +1,10 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
+
+    # Serve uploaded files from storage/app/public without a symlink.
+    RewriteRule ^storage/(.*)$ storage/app/public/$1 [END]
+
+    # Funnel everything else into the public/ folder
     RewriteRule ^$ public/ [L]
     RewriteRule (.*) public/$1 [L]
 </IfModule>
