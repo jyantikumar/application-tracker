@@ -65,7 +65,12 @@ class JobApplication extends Model
 
     public function getCalculatedEarningsAttribute(): array
     {
-        $BaseSalary   = $this->salary ?: (($this->salary_min + $this->salary_max) / 2);
+        if ($this->salary_min && $this->salary_max) {
+            $BaseSalary = ($this->salary_min + $this->salary_max) / 2;
+        } else {
+            $BaseSalary = $this->salary ?: 0;
+        }
+
         $HoursPerWeek = $this->hours_per_week ?: 40;
         $HoursPerDay  = $HoursPerWeek / 5;
 

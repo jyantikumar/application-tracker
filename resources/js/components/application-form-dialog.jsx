@@ -63,15 +63,22 @@ function emptyForm(sources = [], statuses = []) {
 }
 
 function formFromApplication(app, sources = [], statuses = []) {
+  const LegacySalary = app?.salary ?? ""
+  const HasRange =
+    app?.salary_min != null &&
+    app?.salary_min !== "" &&
+    app?.salary_max != null &&
+    app?.salary_max !== ""
+
   return {
     company_name: app?.company_name || "",
     position: app?.position || "",
     job_type: app?.job_type || "Remote",
     city: app?.city || "",
     currency: app?.currency || "USD",
-    salary: app?.salary ?? "",
-    salary_min: app?.salary_min ?? "",
-    salary_max: app?.salary_max ?? "",
+    salary: LegacySalary,
+    salary_min: HasRange ? app.salary_min : LegacySalary,
+    salary_max: HasRange ? app.salary_max : LegacySalary,
     pay_rate_type: app?.pay_rate_type || "Hourly",
     hours_per_week: app?.hours_per_week ?? "40",
     ApplicationURL: app?.ApplicationURL || "",
@@ -83,6 +90,13 @@ function formFromApplication(app, sources = [], statuses = []) {
     resume: null,
     remove_resume: false,
   }
+}
+
+function MidpointSalary(Min, Max) {
+  const MinNum = Number(Min)
+  const MaxNum = Number(Max)
+  if (!Number.isFinite(MinNum) || !Number.isFinite(MaxNum)) return ""
+  return ((MinNum + MaxNum) / 2).toFixed(2)
 }
 
 export function ApplicationFormDialog({
@@ -136,7 +150,7 @@ export function ApplicationFormDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, isEdit, application?.id])
 
-  // Live PHP conversion preview for remote compensation
+  // Live PHP conversion preview for remote compensation (uses min/max midpoint)
   useEffect(() => {
     if (!open || form.data.job_type !== "Remote") {
       setPhpPreview(null)
@@ -144,16 +158,16 @@ export function ApplicationFormDialog({
     }
 
     const Currency = String(form.data.currency || "").toUpperCase()
-    const Salary = Number(form.data.salary)
-    if (!Currency || Currency === "PHP" || !Number.isFinite(Salary) || Salary <= 0) {
+    const Mid = Number(MidpointSalary(form.data.salary_min, form.data.salary_max))
+    if (!Currency || Currency === "PHP" || !Number.isFinite(Mid) || Mid <= 0) {
       setPhpPreview(null)
       return
     }
 
     let Hours = Number(form.data.hours_per_week) || 40
-    let Monthly = Salary
+    let Monthly = Mid
     if (form.data.pay_rate_type === "Hourly") {
-      Monthly = (Salary * Hours * 52) / 12
+      Monthly = (Mid * Hours * 52) / 12
     }
 
     let Cancelled = false
@@ -179,7 +193,8 @@ export function ApplicationFormDialog({
     open,
     form.data.job_type,
     form.data.currency,
-    form.data.salary,
+    form.data.salary_min,
+    form.data.salary_max,
     form.data.pay_rate_type,
     form.data.hours_per_week,
   ])
@@ -225,9 +240,28 @@ export function ApplicationFormDialog({
       forceFormData: true, // 👈 required so multipart/form-data is used for the file
       onSuccess: () => onOpenChange(false),
     }
+
+    form.transform((data) => {
+      const IsRemote = data.job_type === "Remote"
+      const Mid = MidpointSalary(data.salary_min, data.salary_max)
+
+      const Payload = {
+        ...data,
+        salary: IsRemote ? Mid : "",
+        salary_min: data.salary_min,
+        salary_max: data.salary_max,
+        currency: IsRemote ? data.currency : "PHP",
+        pay_rate_type: IsRemote ? data.pay_rate_type : "Monthly",
+      }
+
+      if (isEdit) {
+        Payload._method = "put"
+      }
+
+      return Payload
+    })
+
     if (isEdit) {
-      // Laravel doesn't support multipart + PUT natively; use POST with _method spoof
-      form.transform((data) => ({ ...data, _method: "put" }))
       form.post(route("job-applications.update", application.id), options)
     } else {
       form.post(route("job-applications.store"), options)
@@ -359,12 +393,42 @@ export function ApplicationFormDialog({
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Amount *</Label>
+                      <Label>
+                        Min{" "}
+                        {form.data.pay_rate_type === "Hourly"
+                          ? "hourly"
+                          : "monthly"}{" "}
+                        amount *
+                      </Label>
                       <Input
                         type="number"
                         step="0.01"
-                        value={form.data.salary}
-                        onChange={(e) => form.setData("salary", e.target.value)}
+                        min="0"
+                        value={form.data.salary_min}
+                        onChange={(e) =>
+                          form.setData("salary_min", e.target.value)
+                        }
+                        placeholder="e.g. 15"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>
+                        Max{" "}
+                        {form.data.pay_rate_type === "Hourly"
+                          ? "hourly"
+                          : "monthly"}{" "}
+                        amount *
+                      </Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={form.data.salary_max}
+                        onChange={(e) =>
+                          form.setData("salary_max", e.target.value)
+                        }
+                        placeholder="e.g. 25"
                         required
                       />
                     </div>
@@ -396,10 +460,13 @@ export function ApplicationFormDialog({
                       />
                     </div>
                     {String(form.data.currency || "").toUpperCase() !== "PHP" &&
-                      Number(form.data.salary) > 0 && (
+                      Number(MidpointSalary(
+                        form.data.salary_min,
+                        form.data.salary_max
+                      )) > 0 && (
                         <div className="pointer-events-none sm:col-span-2 rounded-lg border border-border/60 bg-background/80 px-3 py-2.5 select-none">
                           <p className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
-                            Est. monthly in PHP
+                            Est. monthly in PHP (midpoint)
                           </p>
                           <p className="mt-0.5 text-sm font-semibold tabular-nums text-foreground">
                             {PhpPreviewLoading

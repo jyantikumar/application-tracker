@@ -72,12 +72,12 @@
                     <div class="lg:col-span-12 p-4 rounded-xl bg-gray-900/40 border border-gray-700/50 space-y-4">
                         <div class="flex items-center justify-between">
                             <h3 class="text-xs font-bold text-[#92BA56] uppercase tracking-wider">Compensation Log</h3>
-                            <span class="text-[11px] text-gray-400" x-text="JobType === 'Remote' ? 'Exact Remote Rate Log' : 'Onsite / Hybrid Salary Range'"></span>
+                            <span class="text-[11px] text-gray-400" x-text="JobType === 'Remote' ? 'Remote Rate Range' : 'Onsite / Hybrid Salary Range'"></span>
                         </div>
 
-                        <!-- Remote: 4 fields in one row -->
+                        <!-- Remote: currency + min/max + pay frequency + hours -->
                         <template x-if="JobType === 'Remote'">
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                 <div>
                                     <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Currency *</label>
                                     <select name="currency" required class="select w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none">
@@ -89,10 +89,16 @@
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Amount *</label>
-                                    <input type="number" step="0.01" name="salary" value="{{ old('salary', $JobApplication->salary) }}" required
+                                    <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Min Amount *</label>
+                                    <input type="number" step="0.01" name="salary_min" value="{{ old('salary_min', $JobApplication->salary_min ?? $JobApplication->salary) }}" required
                                            class="input w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none"
-                                           placeholder="e.g. 20 or 3000">
+                                           placeholder="e.g. 15">
+                                </div>
+                                <div>
+                                    <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Max Amount *</label>
+                                    <input type="number" step="0.01" name="salary_max" value="{{ old('salary_max', $JobApplication->salary_max ?? $JobApplication->salary) }}" required
+                                           class="input w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none"
+                                           placeholder="e.g. 25">
                                 </div>
                                 <div>
                                     <label class="block text-xs uppercase tracking-wider text-gray-400 font-semibold mb-2">Pay Frequency *</label>
@@ -107,8 +113,7 @@
                                            class="input w-full bg-gray-900/80 border border-gray-700/80 rounded-lg px-4 py-2.5 text-gray-100 text-sm focus:border-[#92BA56] focus:outline-none"
                                            placeholder="Standard: 40">
                                 </div>
-                                <input type="hidden" name="salary_min" value="">
-                                <input type="hidden" name="salary_max" value="">
+                                <input type="hidden" name="salary" value="{{ old('salary', $JobApplication->salary) }}">
                             </div>
                         </template>
 

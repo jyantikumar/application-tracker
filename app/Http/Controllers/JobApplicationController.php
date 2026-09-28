@@ -26,8 +26,8 @@ class JobApplicationController extends Controller
             'status'         => 'required|string|max:255',
             'currency'       => 'nullable|string|max:10',
             'salary'         => 'nullable|numeric',
-            'salary_min'     => 'nullable|numeric',
-            'salary_max'     => 'nullable|numeric',
+            'salary_min'     => 'nullable|numeric|min:0',
+            'salary_max'     => 'nullable|numeric|min:0|gte:salary_min',
             'pay_rate_type'  => 'nullable|string|max:50',
             'hours_per_week' => 'nullable|numeric',
             'description'    => 'nullable|string',
@@ -38,6 +38,25 @@ class JobApplicationController extends Controller
             'resume'         => 'nullable|file|mimes:pdf,doc,docx,png,jpg,jpeg|max:10240',
             'remove_resume'  => 'nullable|boolean',
         ];
+    }
+
+    /**
+     * Derive midpoint salary when a min/max range is provided.
+     */
+    protected function normalizeCompensation(array $Validated): array
+    {
+        $Min = isset($Validated['salary_min']) && $Validated['salary_min'] !== ''
+            ? (float) $Validated['salary_min']
+            : null;
+        $Max = isset($Validated['salary_max']) && $Validated['salary_max'] !== ''
+            ? (float) $Validated['salary_max']
+            : null;
+
+        if ($Min !== null && $Max !== null) {
+            $Validated['salary'] = round(($Min + $Max) / 2, 2);
+        }
+
+        return $Validated;
     }
 
     public function index(): Response
@@ -110,6 +129,7 @@ class JobApplicationController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate($this->rules());
+        $validated = $this->normalizeCompensation($validated);
 
         unset($validated['remove_resume']);
         $validated['user_id'] = auth()->id();
@@ -137,6 +157,7 @@ class JobApplicationController extends Controller
         abort_if($jobApplication->user_id !== auth()->id(), 403);
 
         $validated = $request->validate($this->rules());
+        $validated = $this->normalizeCompensation($validated);
 
         // 👇 Handle remove_resume flag
         if (!empty($validated['remove_resume']) && $jobApplication->resume_path) {
