@@ -85,7 +85,11 @@ class JobApplicationController extends Controller
         $recentApplications = JobApplication::where('user_id', $userId)
             ->latest()
             ->take(10)
-            ->get();
+            ->get()
+            ->map(function ($app) {
+                $app->resume_url = $app->resume_path ? route('job-applications.resume', $app->id) : null;
+                return $app;
+            });
 
         return Inertia::render('JobApplications/Index', [
             'TotalApplications'     => $applications->count(),
@@ -111,13 +115,37 @@ class JobApplicationController extends Controller
         $jobApplications = JobApplication::with(['interviews', 'attachments'])
             ->where('user_id', $userId)
             ->latest()
-            ->get();
+            ->get()
+            ->map(function ($app) {
+                $app->resume_url = $app->resume_path ? route('job-applications.resume', $app->id) : null;
+                return $app;
+            });
 
         $customStatuses = ApplicationStatus::where('user_id', $userId)->pluck('name');
 
         return Inertia::render('JobApplications/Applications', [
             'JobApplications' => $jobApplications,
             'CustomStatuses'  => $customStatuses,
+        ]);
+    }
+
+    /**
+     * Stream or download the stored resume securely.
+     */
+    public function showResume(JobApplication $jobApplication)
+    {
+        abort_if($jobApplication->user_id !== auth()->id(), 403);
+
+        if (!$jobApplication->resume_path || !Storage::disk('public')->exists($jobApplication->resume_path)) {
+            abort(404, 'Resume file not found on server.');
+        }
+
+        $filePath = Storage::disk('public')->path($jobApplication->resume_path);
+        $mimeType = Storage::disk('public')->mimeType($jobApplication->resume_path) ?? 'application/pdf';
+
+        return response()->file($filePath, [
+            'Content-Type'        => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . ($jobApplication->resume_original_name ?? 'resume.pdf') . '"',
         ]);
     }
 
