@@ -41,7 +41,7 @@ class JobApplication extends Model
         'hours_per_week' => 'float',
     ];
 
-    // Expose these on every JSON serialization to Inertia
+    // 👇 Expose these on every JSON serialization to Inertia
     protected $appends = [
         'formatted_salary',
         'calculated_earnings',
@@ -117,11 +117,11 @@ class JobApplication extends Model
         return $this->Interviews()->where('status', 'Completed')->exists();
     }
 
-    // 👇 Generates controller route instead of broken symlink storage URL
+    // 👇 Public URL for the resume (null when none uploaded)
     public function getResumeUrlAttribute(): ?string
     {
         return $this->resume_path
-            ? route('job-applications.resume', $this->id)
+            ? Storage::disk('public')->url($this->resume_path)
             : null;
     }
 

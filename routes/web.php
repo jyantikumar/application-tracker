@@ -26,7 +26,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('job-applications/{jobApplication}/resume', [JobApplicationController::class, 'showResume'])
         ->name('job-applications.resume');
 
-    // Job Application Routes
+    // Job Application Routes (Route::resource handles index, create, store, show, edit, update, destroy automatically)
     Route::get('job-applications/list', [JobApplicationController::class, 'applications'])->name('job-applications.applications');
     Route::resource('job-applications', JobApplicationController::class);
 
@@ -63,9 +63,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('reminders/{reminder}/snooze', [ReminderController::class, 'snooze'])->name('reminders.snooze');
 
     Route::post('job-applications/import', [JobApplicationController::class, 'Import'])->name('job-applications.import');
-
-    Route::get('job-applications/{JobApplication}/edit', [JobApplicationController::class, 'Edit'])->name('job-applications.edit');
-    Route::put('job-applications/{JobApplication}', [JobApplicationController::class, 'Update'])->name('job-applications.update');
 
     // Breeze Profile Routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
