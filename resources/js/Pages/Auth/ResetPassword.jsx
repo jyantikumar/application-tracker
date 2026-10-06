@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-export default function ResetPassword({ token, email }) {
+export default function ResetPassword({ token = "direct-reset", email = "" }) {
   const { data, setData, post, processing, errors, reset } = useForm({
-    token,
-    email,
+    token: token || "direct-reset",
+    email: email || "",
     password: "",
     password_confirmation: "",
   })

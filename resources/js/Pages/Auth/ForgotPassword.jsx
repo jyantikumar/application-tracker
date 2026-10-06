@@ -26,7 +26,7 @@ export default function ForgotPassword({ status }) {
         )}
 
         <p className="text-sm text-muted-foreground">
-          Forgot your password? Enter your email and we'll send you a reset link.
+          Forgot your password? Enter your email address to set a new password
         </p>
 
         <div className="space-y-2">
@@ -53,7 +53,7 @@ export default function ForgotPassword({ status }) {
 
         <div className="flex items-center justify-end pt-2">
           <Button type="submit" disabled={processing}>
-            Email password reset link
+            Reset Password
           </Button>
         </div>
       </form>
@@ -64,7 +64,7 @@ export default function ForgotPassword({ status }) {
 ForgotPassword.layout = (page) => (
   <AuthLayout
     title="Reset your password"
-    subtitle="We'll email you a secure reset link"
+    subtitle="Enter your account email to continue"
   >
     {page}
   </AuthLayout>
