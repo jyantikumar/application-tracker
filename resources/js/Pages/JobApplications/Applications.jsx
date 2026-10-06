@@ -89,8 +89,8 @@ function formatDate(value) {
   })
 }
 
-function getResumeKind(url = "") {
-  const lower = url.toLowerCase().split("?")[0]
+function getResumeKind(filename = "", url = "") {
+  const lower = (filename || url).toLowerCase().split("?")[0]
   if (lower.endsWith(".pdf")) return "pdf"
   if (/\.(png|jpe?g|gif|webp)$/.test(lower)) return "image"
   return "other"
@@ -684,7 +684,6 @@ export default function Applications({
               <div className="shrink-0 border-b border-border/60 px-6 py-3">
                 <Select value={activeTab} onValueChange={setActiveTab}>
                   <SelectTrigger className="w-full">
-
                     <SelectValue placeholder="Select section" />
                   </SelectTrigger>
                   <SelectContent position="popper">
@@ -873,15 +872,33 @@ export default function Applications({
                         </div>
 
                         {(() => {
-                          const kind = getResumeKind(selectedApp.resume_url || "")
+                          const kind = getResumeKind(
+                            selectedApp.resume_original_name || selectedApp.resume_path || "",
+                            selectedApp.resume_url || ""
+                          )
                           if (kind === "pdf") {
                             return (
-                              <div className="overflow-hidden rounded-lg border border-border/60 bg-muted/10">
-                                <iframe
-                                  src={selectedApp.resume_url}
-                                  title="Resume preview"
-                                  className="h-[520px] w-full"
-                                />
+                              <div className="space-y-4">
+                                {/* Mobile View: Direct button to bypass iframe cookie/render issues */}
+                                <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border/60 bg-muted/20 p-6 text-center sm:hidden">
+                                  <FileTextIcon className="size-8 text-primary" />
+                                  <div>
+                                    <p className="text-sm font-semibold">PDF Document Attached</p>
+                                    <p className="mt-1 mb-4 text-xs text-muted-foreground">
+                                      Mobile browsers cannot render embedded PDFs inside an iframe. Tap below to view your document in full screen.
+                                    </p>
+                                    
+                                  </div>
+                                </div>
+
+                                {/* Desktop View: Embedded PDF iframe */}
+                                <div className="hidden overflow-hidden rounded-lg border border-border/60 bg-muted/10 sm:block">
+                                  <iframe
+                                    src={selectedApp.resume_url}
+                                    title="Resume preview"
+                                    className="h-[520px] w-full"
+                                  />
+                                </div>
                               </div>
                             )
                           }

@@ -155,9 +155,9 @@ export function ApplicationFormDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, isEdit, application?.id])
 
-  // Live PHP conversion preview for remote compensation (min → max monthly)
+  // Live PHP conversion preview for all compensation ranges (min → max monthly)
   useEffect(() => {
-    if (!open || form.data.job_type !== "Remote") {
+    if (!open) {
       setPhpPreview(null)
       return
     }
@@ -207,7 +207,6 @@ export function ApplicationFormDialog({
     }
   }, [
     open,
-    form.data.job_type,
     form.data.currency,
     form.data.salary_min,
     form.data.salary_max,
@@ -253,21 +252,20 @@ export function ApplicationFormDialog({
   const submitForm = () => {
     const options = {
       preserveScroll: true,
-      forceFormData: true, // 👈 required so multipart/form-data is used for the file
+      forceFormData: true,
       onSuccess: () => onOpenChange(false),
     }
 
     form.transform((data) => {
-      const IsRemote = data.job_type === "Remote"
       const Mid = MidpointSalary(data.salary_min, data.salary_max)
 
       const Payload = {
         ...data,
-        salary: IsRemote ? Mid : "",
+        salary: Mid,
         salary_min: data.salary_min,
         salary_max: data.salary_max,
-        currency: IsRemote ? data.currency : "PHP",
-        pay_rate_type: IsRemote ? data.pay_rate_type : "Monthly",
+        currency: data.currency,
+        pay_rate_type: data.pay_rate_type,
       }
 
       if (isEdit) {
@@ -297,7 +295,6 @@ export function ApplicationFormDialog({
     const file = e.target.files?.[0] ?? null
     form.setData("resume", file)
     if (file) {
-      // Clear "remove" intent if a new file is selected
       form.setData("remove_resume", false)
     }
   }
@@ -399,152 +396,123 @@ export function ApplicationFormDialog({
                 <h3 className="text-xs font-bold tracking-wider text-primary uppercase">
                   Compensation
                 </h3>
-                {form.data.job_type === "Remote" ? (
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div className="space-y-2 sm:col-span-2">
-                      <Label>Currency *</Label>
-                      <CurrencyCombobox
-                        value={form.data.currency}
-                        onValueChange={(Code) => form.setData("currency", Code)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>
-                        Min{" "}
-                        {form.data.pay_rate_type === "Hourly"
-                          ? "hourly"
-                          : "monthly"}{" "}
-                        amount *
-                      </Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={form.data.salary_min}
-                        onChange={(e) =>
-                          form.setData("salary_min", e.target.value)
-                        }
-                        placeholder="e.g. 15"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>
-                        Max{" "}
-                        {form.data.pay_rate_type === "Hourly"
-                          ? "hourly"
-                          : "monthly"}{" "}
-                        amount *
-                      </Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={form.data.salary_max}
-                        onChange={(e) =>
-                          form.setData("salary_max", e.target.value)
-                        }
-                        placeholder="e.g. 25"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Pay frequency *</Label>
-                      <Select
-                        value={form.data.pay_rate_type}
-                        onValueChange={(v) => form.setData("pay_rate_type", v)}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent position="popper">
-                          <SelectItem value="Hourly">Hourly rate</SelectItem>
-                          <SelectItem value="Monthly">Monthly rate</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Hours / week *</Label>
-                      <Input
-                        type="number"
-                        step="0.5"
-                        value={form.data.hours_per_week}
-                        onChange={(e) =>
-                          form.setData("hours_per_week", e.target.value)
-                        }
-                        required
-                      />
-                    </div>
-                    {String(form.data.currency || "").toUpperCase() !== "PHP" &&
-                      Number(form.data.salary_min) > 0 &&
-                      Number(form.data.salary_max) > 0 && (
-                        <div className="pointer-events-none sm:col-span-2 rounded-lg border border-border/60 bg-background/80 px-3 py-2.5 select-none">
-                          <p className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
-                            Est. monthly in PHP
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label>Currency *</Label>
+                    <CurrencyCombobox
+                      value={form.data.currency}
+                      onValueChange={(Code) => form.setData("currency", Code)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>
+                      Min{" "}
+                      {form.data.pay_rate_type === "Hourly"
+                        ? "hourly"
+                        : "monthly"}{" "}
+                      amount *
+                    </Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={form.data.salary_min}
+                      onChange={(e) =>
+                        form.setData("salary_min", e.target.value)
+                      }
+                      placeholder="e.g. 15"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>
+                      Max{" "}
+                      {form.data.pay_rate_type === "Hourly"
+                        ? "hourly"
+                        : "monthly"}{" "}
+                      amount *
+                    </Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={form.data.salary_max}
+                      onChange={(e) =>
+                        form.setData("salary_max", e.target.value)
+                      }
+                      placeholder="e.g. 25"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Pay frequency *</Label>
+                    <Select
+                      value={form.data.pay_rate_type}
+                      onValueChange={(v) => form.setData("pay_rate_type", v)}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent position="popper">
+                        <SelectItem value="Hourly">Hourly rate</SelectItem>
+                        <SelectItem value="Monthly">Monthly rate</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Hours / week *</Label>
+                    <Input
+                      type="number"
+                      step="0.5"
+                      value={form.data.hours_per_week}
+                      onChange={(e) =>
+                        form.setData("hours_per_week", e.target.value)
+                      }
+                      required
+                    />
+                  </div>
+                  {String(form.data.currency || "").toUpperCase() !== "PHP" &&
+                    Number(form.data.salary_min) > 0 &&
+                    Number(form.data.salary_max) > 0 && (
+                      <div className="pointer-events-none sm:col-span-2 rounded-lg border border-border/60 bg-background/80 px-3 py-2.5 select-none">
+                        <p className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+                          Est. monthly in PHP
+                        </p>
+                        {PhpPreviewLoading ? (
+                          <p className="mt-0.5 text-sm text-muted-foreground">
+                            Converting…
                           </p>
-                          {PhpPreviewLoading ? (
-                            <p className="mt-0.5 text-sm text-muted-foreground">
-                              Converting…
-                            </p>
-                          ) : PhpPreview ? (
-                            <div className="mt-2 grid grid-cols-2 gap-3">
-                              <div>
-                                <p className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
-                                  Minimum
-                                </p>
-                                <p className="text-sm font-semibold tabular-nums text-foreground">
-                                  {FormatPhpAmount(PhpPreview.min)}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
-                                  Maximum
-                                </p>
-                                <p className="text-sm font-semibold tabular-nums text-foreground">
-                                  {FormatPhpAmount(PhpPreview.max)}
-                                </p>
-                              </div>
-                              <p className="col-span-2 text-[11px] text-muted-foreground">
-                                Range {FormatPhpRange(PhpPreview.min, PhpPreview.max)}
-                                {PhpPreview.rate
-                                  ? ` · rate ≈ ${Number(PhpPreview.rate).toFixed(4)} PHP per ${form.data.currency}`
-                                  : ""}
+                        ) : PhpPreview ? (
+                          <div className="mt-2 grid grid-cols-2 gap-3">
+                            <div>
+                              <p className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+                                Minimum
+                              </p>
+                              <p className="text-sm font-semibold tabular-nums text-foreground">
+                                {FormatPhpAmount(PhpPreview.min)}
                               </p>
                             </div>
-                          ) : (
-                            <p className="mt-0.5 text-sm text-muted-foreground">—</p>
-                          )}
-                        </div>
-                      )}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label>Min monthly salary (PHP) *</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={form.data.salary_min}
-                        onChange={(e) =>
-                          form.setData("salary_min", e.target.value)
-                        }
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Max monthly salary (PHP) *</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={form.data.salary_max}
-                        onChange={(e) =>
-                          form.setData("salary_max", e.target.value)
-                        }
-                        required
-                      />
-                    </div>
-                  </div>
-                )}
+                            <div>
+                              <p className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+                                Maximum
+                              </p>
+                              <p className="text-sm font-semibold tabular-nums text-foreground">
+                                {FormatPhpAmount(PhpPreview.max)}
+                              </p>
+                            </div>
+                            <p className="col-span-2 text-[11px] text-muted-foreground">
+                              Range {FormatPhpRange(PhpPreview.min, PhpPreview.max)}
+                              {PhpPreview.rate
+                                ? ` · rate ≈ ${Number(PhpPreview.rate).toFixed(4)} PHP per ${form.data.currency}`
+                                : ""}
+                            </p>
+                          </div>
+                        ) : (
+                          <p className="mt-0.5 text-sm text-muted-foreground">—</p>
+                        )}
+                      </div>
+                    )}
+                </div>
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -614,11 +582,9 @@ export function ApplicationFormDialog({
                   </Select>
                 </div>
 
-                {/* 👇 Resume upload */}
                 <div className="space-y-2 sm:col-span-2">
                   <Label>Resume (optional)</Label>
 
-                  {/* Existing resume preview (edit mode) */}
                   {hasExistingResume && !newResumeSelected && (
                     <div className="flex items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2 text-sm">
                       <FileTextIcon className="size-4 shrink-0 text-primary" />
@@ -642,7 +608,6 @@ export function ApplicationFormDialog({
                     </div>
                   )}
 
-                  {/* Warning if marked for removal */}
                   {isEdit && form.data.remove_resume && !newResumeSelected && (
                     <div className="flex items-center gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
                       <XIcon className="size-3.5" />
@@ -659,7 +624,6 @@ export function ApplicationFormDialog({
                     </div>
                   )}
 
-                  {/* New file selected preview */}
                   {newResumeSelected && (
                     <div className="flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-sm">
                       <FileTextIcon className="size-4 shrink-0 text-primary" />
@@ -763,7 +727,6 @@ export function ApplicationFormDialog({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Add source modal (unchanged) */}
       <Dialog open={isAddSourceOpen} onOpenChange={setIsAddSourceOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -804,7 +767,6 @@ export function ApplicationFormDialog({
         </DialogContent>
       </Dialog>
 
-      {/* Add status modal (unchanged) */}
       <Dialog open={isAddStatusOpen} onOpenChange={setIsAddStatusOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
